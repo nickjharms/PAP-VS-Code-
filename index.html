@@ -1,0 +1,834 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Patient Adherence Program</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            navy:    { DEFAULT: '#0d1f3c', 50: '#e8edf5', 100: '#c5d0e6', 200: '#8fa5cc', 300: '#5a79b3', 400: '#2e5299', 500: '#0d1f3c' },
+            teal:    { DEFAULT: '#0a8f8f', 50: '#e0f5f5', 100: '#b3e6e6', 200: '#66cccc', 300: '#1ab3b3', 400: '#0a8f8f', 500: '#076e6e' },
+            slate:   { 50: '#f8fafb', 100: '#f0f4f8', 200: '#dce5ee', 300: '#b8c9d9', 400: '#8ba5bc', 500: '#5f8099', 600: '#3d607d', 700: '#24455e', 800: '#132d42', 900: '#08182a' },
+          },
+          fontFamily: {
+            serif: ['"DM Serif Display"', 'Georgia', 'serif'],
+            sans:  ['Inter', 'system-ui', 'sans-serif'],
+          },
+          letterSpacing: { tight: '-0.03em', snug: '-0.015em' },
+          lineHeight: { body: '1.75' },
+          boxShadow: {
+            'card':    '0 2px 8px rgba(13,31,60,0.06), 0 8px 32px rgba(13,31,60,0.08)',
+            'card-lg': '0 4px 16px rgba(13,31,60,0.08), 0 16px 48px rgba(13,31,60,0.12)',
+            'teal':    '0 8px 24px rgba(10,143,143,0.30)',
+            'teal-sm': '0 4px 12px rgba(10,143,143,0.22)',
+            'navy':    '0 8px 24px rgba(13,31,60,0.32)',
+          },
+        }
+      }
+    }
+  </script>
+
+  <style>
+    /* SVG noise grain texture */
+    .grain::after {
+      content: '';
+      position: absolute; inset: 0; pointer-events: none; z-index: 0;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='300' height='300'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.75' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='300' height='300' filter='url(%23n)' opacity='0.04'/%3E%3C/svg%3E");
+      background-repeat: repeat;
+    }
+    body { font-family: 'Inter', sans-serif; color: #132d42; }
+    h1,h2,h3,.serif { font-family: 'DM Serif Display', serif; }
+    .tracking-tight { letter-spacing: -0.03em; }
+    .tracking-snug  { letter-spacing: -0.015em; }
+
+    /* Fade-up scroll reveal */
+    .reveal { opacity: 0; transform: translateY(28px); transition: opacity 0.65s cubic-bezier(0.22,1,0.36,1), transform 0.65s cubic-bezier(0.22,1,0.36,1); }
+    .reveal.visible { opacity: 1; transform: none; }
+
+    /* Gradient text */
+    .text-gradient {
+      background: linear-gradient(135deg, #1ab3b3 0%, #66cccc 100%);
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    /* Layered hero gradient */
+    .hero-bg {
+      background:
+        radial-gradient(ellipse 80% 60% at 70% 40%, rgba(10,143,143,0.22) 0%, transparent 70%),
+        radial-gradient(ellipse 60% 80% at 20% 70%, rgba(30,80,160,0.18) 0%, transparent 65%),
+        radial-gradient(ellipse 100% 100% at 50% 0%, rgba(13,31,60,1) 0%, #0d1f3c 100%);
+    }
+
+    /* Subtle section gradient */
+    .section-alt {
+      background:
+        radial-gradient(ellipse 60% 50% at 90% 50%, rgba(10,143,143,0.06) 0%, transparent 70%),
+        #f8fafb;
+    }
+
+    /* Card hover lift */
+    .card-hover { transition: transform 0.25s cubic-bezier(0.22,1,0.36,1), box-shadow 0.25s cubic-bezier(0.22,1,0.36,1); }
+    .card-hover:hover { transform: translateY(-5px); }
+
+    /* Button active press */
+    .btn-press:active { transform: scale(0.97); }
+
+    /* FAQ transition */
+    .faq-body { max-height: 0; overflow: hidden; transition: max-height 0.35s cubic-bezier(0.22,1,0.36,1), padding 0.3s; }
+    .faq-item.open .faq-body { max-height: 260px; padding-bottom: 20px; }
+    .faq-item.open .faq-chevron { transform: rotate(180deg); }
+    .faq-chevron { transition: transform 0.3s cubic-bezier(0.22,1,0.36,1); }
+
+    /* Scrollbar */
+    ::-webkit-scrollbar { width: 6px; }
+    ::-webkit-scrollbar-track { background: #f0f4f8; }
+    ::-webkit-scrollbar-thumb { background: #8ba5bc; border-radius: 3px; }
+  </style>
+</head>
+<body class="antialiased">
+
+<!-- ═══════════════════════════════════════════════════════
+     NAVBAR
+═══════════════════════════════════════════════════════ -->
+<nav id="navbar" class="fixed top-0 inset-x-0 z-50 transition-all duration-300" style="background:rgba(13,31,60,0.0);backdrop-filter:blur(0px)">
+  <div class="max-w-6xl mx-auto px-6">
+    <div class="flex items-center justify-between h-[70px]">
+      <!-- Logo -->
+      <a href="#hero" class="flex items-center gap-3 group">
+        <div class="w-9 h-9 rounded-xl flex items-center justify-center text-white font-bold text-base shadow-teal-sm" style="background:linear-gradient(135deg,#0a8f8f,#1ab3b3)">✚</div>
+        <span class="text-white font-semibold text-lg tracking-snug">PAP</span>
+      </a>
+      <!-- Links -->
+      <ul class="hidden md:flex items-center gap-8 list-none">
+        <li><a href="#about"      class="text-white/70 hover:text-white text-sm font-medium transition-colors duration-150">About</a></li>
+        <li><a href="#categories" class="text-white/70 hover:text-white text-sm font-medium transition-colors duration-150">Categories</a></li>
+        <li><a href="#how"        class="text-white/70 hover:text-white text-sm font-medium transition-colors duration-150">How It Works</a></li>
+        <li><a href="#benefits"   class="text-white/70 hover:text-white text-sm font-medium transition-colors duration-150">Benefits</a></li>
+        <li><a href="#faq"        class="text-white/70 hover:text-white text-sm font-medium transition-colors duration-150">FAQ</a></li>
+      </ul>
+      <a href="#enroll" class="hidden md:inline-flex items-center gap-2 px-5 py-2.5 rounded-full text-sm font-semibold text-white shadow-teal-sm btn-press transition-all duration-200 hover:shadow-teal hover:-translate-y-0.5" style="background:linear-gradient(135deg,#0a8f8f,#1ab3b3)">
+        Enroll Free →
+      </a>
+    </div>
+  </div>
+</nav>
+
+<!-- ═══════════════════════════════════════════════════════
+     HERO
+═══════════════════════════════════════════════════════ -->
+<section id="hero" class="hero-bg grain relative overflow-hidden pt-32 pb-24">
+  <!-- Decorative ring -->
+  <div class="absolute right-[-180px] top-[-180px] w-[600px] h-[600px] rounded-full border border-white/5 pointer-events-none"></div>
+  <div class="absolute right-[-80px] top-[-80px] w-[400px] h-[400px] rounded-full border border-teal-400/10 pointer-events-none"></div>
+
+  <div class="relative z-10 max-w-6xl mx-auto px-6">
+    <div class="grid lg:grid-cols-2 gap-16 items-center">
+      <!-- Left -->
+      <div>
+        <div class="inline-flex items-center gap-2.5 mb-6 px-4 py-2 rounded-full border border-white/15 bg-white/8 backdrop-blur-sm">
+          <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+          <span class="text-white/80 text-xs font-medium tracking-wide">Now Enrolling New Patients</span>
+        </div>
+        <h1 class="serif text-white tracking-tight leading-[1.1] mb-6" style="font-size:clamp(40px,5.5vw,62px)">
+          Empowering Patients<br>to <span class="text-gradient">Stay on Track</span><br>with Their Care
+        </h1>
+        <p class="text-white/65 text-lg leading-body mb-10 max-w-[480px]">
+          The Patient Adherence Program provides personalized support, education, and resources to help patients follow their treatment plans — improving outcomes and quality of life.
+        </p>
+        <div class="flex flex-wrap gap-4">
+          <a href="#enroll" class="inline-flex items-center gap-2 px-7 py-3.5 rounded-full font-semibold text-white shadow-teal btn-press transition-all duration-200 hover:shadow-teal hover:-translate-y-0.5" style="background:linear-gradient(135deg,#0a8f8f,#1ab3b3)">
+            Get Started Free →
+          </a>
+          <a href="#how" class="inline-flex items-center gap-2 px-7 py-3.5 rounded-full font-semibold text-white/80 border border-white/20 hover:bg-white/10 hover:text-white transition-all duration-200">
+            How It Works
+          </a>
+        </div>
+        <!-- Trust badges -->
+        <div class="flex flex-wrap gap-5 mt-10">
+          <div class="flex items-center gap-2 text-white/50 text-xs font-medium"><span>🏛️</span> HIPAA Compliant</div>
+          <div class="flex items-center gap-2 text-white/50 text-xs font-medium"><span>✅</span> Accredited</div>
+          <div class="flex items-center gap-2 text-white/50 text-xs font-medium"><span>🔒</span> 256-bit Encrypted</div>
+        </div>
+      </div>
+      <!-- Right — stats card -->
+      <div class="reveal" style="transition-delay:.1s">
+        <div class="rounded-2xl p-7 border border-white/12 backdrop-blur-md" style="background:rgba(255,255,255,0.07)">
+          <p class="text-white/50 text-xs font-semibold tracking-widest uppercase mb-5">Program at a Glance</p>
+          <div class="grid grid-cols-2 gap-4">
+            <div class="rounded-xl p-4 border border-white/8" style="background:rgba(255,255,255,0.06)">
+              <div class="text-3xl font-bold text-white tracking-tight leading-none mb-1">87<span class="text-teal-300 text-xl">%</span></div>
+              <div class="text-white/55 text-xs leading-snug">Adherence rate improvement</div>
+            </div>
+            <div class="rounded-xl p-4 border border-white/8" style="background:rgba(255,255,255,0.06)">
+              <div class="text-3xl font-bold text-white tracking-tight leading-none mb-1">42<span class="text-teal-300 text-xl">%</span></div>
+              <div class="text-white/55 text-xs leading-snug">Fewer hospital readmissions</div>
+            </div>
+            <div class="rounded-xl p-4 border border-white/8" style="background:rgba(255,255,255,0.06)">
+              <div class="text-3xl font-bold text-white tracking-tight leading-none mb-1">12<span class="text-teal-300 text-xl">k+</span></div>
+              <div class="text-white/55 text-xs leading-snug">Active enrolled patients</div>
+            </div>
+            <div class="rounded-xl p-4 border border-white/8" style="background:rgba(255,255,255,0.06)">
+              <div class="text-3xl font-bold text-white tracking-tight leading-none mb-1">4.9<span class="text-teal-300 text-xl">/5</span></div>
+              <div class="text-white/55 text-xs leading-snug">Patient satisfaction score</div>
+            </div>
+          </div>
+          <div class="mt-4 rounded-xl p-4 flex items-center gap-3 border border-teal-400/20" style="background:rgba(10,143,143,0.15)">
+            <span class="text-2xl">⭐</span>
+            <div>
+              <div class="text-white font-semibold text-sm">Top-Rated Program 2024</div>
+              <div class="text-white/50 text-xs">Joint Commission Accredited</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════════════════
+     STATS STRIP
+═══════════════════════════════════════════════════════ -->
+<div class="bg-navy-500 py-5 border-t border-white/5" style="background:#0d1f3c">
+  <div class="max-w-6xl mx-auto px-6">
+    <div class="flex flex-wrap items-center justify-center gap-x-10 gap-y-3">
+      <div class="flex items-center gap-2.5 text-white/60 text-sm font-medium"><span>🏛️</span> HIPAA Compliant</div>
+      <div class="w-px h-4 bg-white/10 hidden md:block"></div>
+      <div class="flex items-center gap-2.5 text-white/60 text-sm font-medium"><span>✅</span> Joint Commission Accredited</div>
+      <div class="w-px h-4 bg-white/10 hidden md:block"></div>
+      <div class="flex items-center gap-2.5 text-white/60 text-sm font-medium"><span>🔒</span> 256-bit Encrypted</div>
+      <div class="w-px h-4 bg-white/10 hidden md:block"></div>
+      <div class="flex items-center gap-2.5 text-white/60 text-sm font-medium"><span>📋</span> Evidence-Based Protocols</div>
+      <div class="w-px h-4 bg-white/10 hidden md:block"></div>
+      <div class="flex items-center gap-2.5 text-white/60 text-sm font-medium"><span>🤝</span> Insurance Accepted</div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════
+     ABOUT
+═══════════════════════════════════════════════════════ -->
+<section id="about" class="py-28">
+  <div class="max-w-6xl mx-auto px-6">
+    <div class="grid lg:grid-cols-2 gap-20 items-center">
+      <!-- Visual -->
+      <div class="reveal relative">
+        <div class="rounded-2xl aspect-[4/3] flex items-center justify-center overflow-hidden relative" style="background:linear-gradient(135deg,#e0f5f5 0%,#dbeafe 100%)">
+          <!-- Color treatment layer -->
+          <div class="absolute inset-0 mix-blend-multiply" style="background:linear-gradient(135deg,rgba(10,143,143,0.15) 0%,rgba(13,31,60,0.1) 100%)"></div>
+          <span class="text-8xl relative z-10 select-none">🩺</span>
+        </div>
+        <!-- Floating badge -->
+        <div class="absolute -bottom-5 -right-5 bg-white rounded-2xl shadow-card-lg p-5 flex items-center gap-4">
+          <div class="w-12 h-12 rounded-xl flex items-center justify-center text-white text-xl shadow-teal-sm flex-shrink-0" style="background:linear-gradient(135deg,#0a8f8f,#1ab3b3)">🏆</div>
+          <div>
+            <div class="font-bold text-navy text-lg leading-none">Top-Rated</div>
+            <div class="text-slate-500 text-xs mt-0.5">Patient Program 2024</div>
+          </div>
+        </div>
+      </div>
+      <!-- Copy -->
+      <div class="reveal" style="transition-delay:.12s">
+        <span class="inline-block text-xs font-bold tracking-widest uppercase text-teal bg-teal-50 px-4 py-2 rounded-full mb-5">About the Program</span>
+        <h2 class="serif text-navy tracking-tight leading-[1.15] mb-5" style="font-size:clamp(28px,3.5vw,42px)">What Is the Patient Adherence Program?</h2>
+        <p class="text-slate-500 text-lg leading-body mb-8">
+          PAP is a structured, evidence-based program designed to help patients consistently follow their prescribed treatment plans. Non-adherence causes 125,000 preventable deaths and $300 billion in excess costs annually — we're here to change that.
+        </p>
+        <div class="space-y-5">
+          <div class="flex gap-4">
+            <div class="w-9 h-9 rounded-lg flex items-center justify-center bg-teal-50 text-teal flex-shrink-0 text-base">👤</div>
+            <div>
+              <div class="font-semibold text-navy mb-0.5">Personalized Care Plans</div>
+              <div class="text-slate-500 text-sm leading-body">Each patient receives a customized plan built around their condition, lifestyle, and goals.</div>
+            </div>
+          </div>
+          <div class="flex gap-4">
+            <div class="w-9 h-9 rounded-lg flex items-center justify-center bg-teal-50 text-teal flex-shrink-0 text-base">📱</div>
+            <div>
+              <div class="font-semibold text-navy mb-0.5">Smart Reminders &amp; Digital Check-Ins</div>
+              <div class="text-slate-500 text-sm leading-body">Automated medication alerts, appointment reminders, and symptom tracking via app or SMS.</div>
+            </div>
+          </div>
+          <div class="flex gap-4">
+            <div class="w-9 h-9 rounded-lg flex items-center justify-center bg-teal-50 text-teal flex-shrink-0 text-base">🎓</div>
+            <div>
+              <div class="font-semibold text-navy mb-0.5">Patient Education</div>
+              <div class="text-slate-500 text-sm leading-body">Condition-specific resources, videos, and one-on-one coaching to build health literacy.</div>
+            </div>
+          </div>
+          <div class="flex gap-4">
+            <div class="w-9 h-9 rounded-lg flex items-center justify-center bg-teal-50 text-teal flex-shrink-0 text-base">📊</div>
+            <div>
+              <div class="font-semibold text-navy mb-0.5">Progress Monitoring</div>
+              <div class="text-slate-500 text-sm leading-body">Regular health assessments and real-time reporting shared with your entire care team.</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════════════════
+     PATIENT CATEGORIES
+═══════════════════════════════════════════════════════ -->
+<section id="categories" class="py-28 section-alt">
+  <div class="max-w-6xl mx-auto px-6">
+    <div class="text-center mb-16 reveal">
+      <span class="inline-block text-xs font-bold tracking-widest uppercase text-teal bg-teal-50 px-4 py-2 rounded-full mb-5">Who We Serve</span>
+      <h2 class="serif text-navy tracking-tight leading-[1.15] mb-4" style="font-size:clamp(28px,3.5vw,42px)">Patient Categories</h2>
+      <p class="text-slate-500 text-lg max-w-xl mx-auto leading-body">Six specialized care areas, each with dedicated coordinators and condition-specific protocols.</p>
+    </div>
+
+    <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+
+      <!-- Card macro: each card has a top accent, icon, name, desc, tags -->
+      <div class="bg-white rounded-2xl p-7 shadow-card card-hover reveal relative overflow-hidden" style="transition-delay:.04s">
+        <div class="absolute top-0 left-0 right-0 h-[3px] rounded-t-2xl" style="background:linear-gradient(90deg,#0a8f8f,#1ab3b3)"></div>
+        <div class="w-13 h-13 rounded-xl flex items-center justify-center text-2xl mb-5 bg-teal-50">💓</div>
+        <h3 class="font-bold text-navy text-lg mb-2 tracking-snug">Chronic Disease Management</h3>
+        <p class="text-slate-500 text-sm leading-body mb-5">Long-term conditions including diabetes, hypertension, heart disease, and COPD. Continuous monitoring, medication management, and lifestyle coaching to prevent complications.</p>
+        <div class="flex flex-wrap gap-2">
+          <span class="text-xs font-semibold px-3 py-1 rounded-full bg-teal-50 text-teal">Diabetes</span>
+          <span class="text-xs font-semibold px-3 py-1 rounded-full bg-teal-50 text-teal">Hypertension</span>
+          <span class="text-xs font-semibold px-3 py-1 rounded-full bg-teal-50 text-teal">Heart Disease</span>
+          <span class="text-xs font-semibold px-3 py-1 rounded-full bg-teal-50 text-teal">COPD</span>
+        </div>
+      </div>
+
+      <div class="bg-white rounded-2xl p-7 shadow-card card-hover reveal relative overflow-hidden" style="transition-delay:.08s">
+        <div class="absolute top-0 left-0 right-0 h-[3px] rounded-t-2xl" style="background:linear-gradient(90deg,#7c3aed,#a78bfa)"></div>
+        <div class="w-13 h-13 rounded-xl flex items-center justify-center text-2xl mb-5 bg-violet-50">🧠</div>
+        <h3 class="font-bold text-navy text-lg mb-2 tracking-snug">Mental Health &amp; Behavioral</h3>
+        <p class="text-slate-500 text-sm leading-body mb-5">Depression, anxiety, bipolar disorder, and substance use. Combines medication adherence with behavioral coaching and mental wellness resources for whole-person care.</p>
+        <div class="flex flex-wrap gap-2">
+          <span class="text-xs font-semibold px-3 py-1 rounded-full bg-violet-50 text-violet-600">Depression</span>
+          <span class="text-xs font-semibold px-3 py-1 rounded-full bg-violet-50 text-violet-600">Anxiety</span>
+          <span class="text-xs font-semibold px-3 py-1 rounded-full bg-violet-50 text-violet-600">Bipolar</span>
+          <span class="text-xs font-semibold px-3 py-1 rounded-full bg-violet-50 text-violet-600">Substance Use</span>
+        </div>
+      </div>
+
+      <div class="bg-white rounded-2xl p-7 shadow-card card-hover reveal relative overflow-hidden" style="transition-delay:.12s">
+        <div class="absolute top-0 left-0 right-0 h-[3px] rounded-t-2xl" style="background:linear-gradient(90deg,#dc2626,#fb7185)"></div>
+        <div class="w-13 h-13 rounded-xl flex items-center justify-center text-2xl mb-5 bg-red-50">🎗️</div>
+        <h3 class="font-bold text-navy text-lg mb-2 tracking-snug">Oncology &amp; Cancer Care</h3>
+        <p class="text-slate-500 text-sm leading-body mb-5">Patients undergoing chemotherapy, immunotherapy, or radiation. Complex regimen support, side-effect management, and emotional wellbeing throughout the treatment journey.</p>
+        <div class="flex flex-wrap gap-2">
+          <span class="text-xs font-semibold px-3 py-1 rounded-full bg-red-50 text-red-600">Chemotherapy</span>
+          <span class="text-xs font-semibold px-3 py-1 rounded-full bg-red-50 text-red-600">Immunotherapy</span>
+          <span class="text-xs font-semibold px-3 py-1 rounded-full bg-red-50 text-red-600">Radiation</span>
+          <span class="text-xs font-semibold px-3 py-1 rounded-full bg-red-50 text-red-600">Survivorship</span>
+        </div>
+      </div>
+
+      <div class="bg-white rounded-2xl p-7 shadow-card card-hover reveal relative overflow-hidden" style="transition-delay:.16s">
+        <div class="absolute top-0 left-0 right-0 h-[3px] rounded-t-2xl" style="background:linear-gradient(90deg,#d97706,#fbbf24)"></div>
+        <div class="w-13 h-13 rounded-xl flex items-center justify-center text-2xl mb-5 bg-amber-50">🦴</div>
+        <h3 class="font-bold text-navy text-lg mb-2 tracking-snug">Post-Surgical Recovery</h3>
+        <p class="text-slate-500 text-sm leading-body mb-5">Adherence to rehab protocols, wound care, medication schedules, and follow-up appointments after major surgery to prevent complications and accelerate healing.</p>
+        <div class="flex flex-wrap gap-2">
+          <span class="text-xs font-semibold px-3 py-1 rounded-full bg-amber-50 text-amber-600">Orthopedic</span>
+          <span class="text-xs font-semibold px-3 py-1 rounded-full bg-amber-50 text-amber-600">Cardiac</span>
+          <span class="text-xs font-semibold px-3 py-1 rounded-full bg-amber-50 text-amber-600">Bariatric</span>
+          <span class="text-xs font-semibold px-3 py-1 rounded-full bg-amber-50 text-amber-600">Rehab</span>
+        </div>
+      </div>
+
+      <div class="bg-white rounded-2xl p-7 shadow-card card-hover reveal relative overflow-hidden" style="transition-delay:.20s">
+        <div class="absolute top-0 left-0 right-0 h-[3px] rounded-t-2xl" style="background:linear-gradient(90deg,#059669,#34d399)"></div>
+        <div class="w-13 h-13 rounded-xl flex items-center justify-center text-2xl mb-5 bg-emerald-50">👴</div>
+        <h3 class="font-bold text-navy text-lg mb-2 tracking-snug">Senior &amp; Geriatric Care</h3>
+        <p class="text-slate-500 text-sm leading-body mb-5">Older adults managing multiple medications and comorbidities. Simplified care plans, caregiver coordination, fall-risk assessments, and cognitive support tools.</p>
+        <div class="flex flex-wrap gap-2">
+          <span class="text-xs font-semibold px-3 py-1 rounded-full bg-emerald-50 text-emerald-600">Polypharmacy</span>
+          <span class="text-xs font-semibold px-3 py-1 rounded-full bg-emerald-50 text-emerald-600">Dementia</span>
+          <span class="text-xs font-semibold px-3 py-1 rounded-full bg-emerald-50 text-emerald-600">Fall Prevention</span>
+          <span class="text-xs font-semibold px-3 py-1 rounded-full bg-emerald-50 text-emerald-600">Caregiver Support</span>
+        </div>
+      </div>
+
+      <div class="bg-white rounded-2xl p-7 shadow-card card-hover reveal relative overflow-hidden" style="transition-delay:.24s">
+        <div class="absolute top-0 left-0 right-0 h-[3px] rounded-t-2xl" style="background:linear-gradient(90deg,#0369a1,#38bdf8)"></div>
+        <div class="w-13 h-13 rounded-xl flex items-center justify-center text-2xl mb-5 bg-sky-50">🫁</div>
+        <h3 class="font-bold text-navy text-lg mb-2 tracking-snug">Respiratory &amp; Pulmonary</h3>
+        <p class="text-slate-500 text-sm leading-body mb-5">Asthma, COPD, sleep apnea, and other respiratory conditions. Inhaler technique training, environmental trigger management, and pulmonary rehab adherence support.</p>
+        <div class="flex flex-wrap gap-2">
+          <span class="text-xs font-semibold px-3 py-1 rounded-full bg-sky-50 text-sky-600">Asthma</span>
+          <span class="text-xs font-semibold px-3 py-1 rounded-full bg-sky-50 text-sky-600">Sleep Apnea</span>
+          <span class="text-xs font-semibold px-3 py-1 rounded-full bg-sky-50 text-sky-600">Pulmonary Rehab</span>
+          <span class="text-xs font-semibold px-3 py-1 rounded-full bg-sky-50 text-sky-600">Inhaler Training</span>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════════════════
+     HOW IT WORKS
+═══════════════════════════════════════════════════════ -->
+<section id="how" class="py-28">
+  <div class="max-w-6xl mx-auto px-6">
+    <div class="text-center mb-16 reveal">
+      <span class="inline-block text-xs font-bold tracking-widest uppercase text-teal bg-teal-50 px-4 py-2 rounded-full mb-5">The Process</span>
+      <h2 class="serif text-navy tracking-tight leading-[1.15] mb-4" style="font-size:clamp(28px,3.5vw,42px)">How the Program Works</h2>
+      <p class="text-slate-500 text-lg max-w-xl mx-auto leading-body">From enrollment to ongoing support — your complete journey with PAP.</p>
+    </div>
+
+    <div class="grid md:grid-cols-2 lg:grid-cols-4 gap-8 relative">
+      <!-- Connector line (desktop) -->
+      <div class="hidden lg:block absolute top-9 left-[calc(12.5%+24px)] right-[calc(12.5%+24px)] h-px bg-slate-200 z-0"></div>
+
+      <div class="reveal text-center relative z-10" style="transition-delay:.04s">
+        <div class="w-[72px] h-[72px] rounded-full flex items-center justify-center text-white text-2xl font-bold mx-auto mb-6 shadow-teal" style="background:linear-gradient(135deg,#0d1f3c,#0a8f8f)">1</div>
+        <h3 class="font-bold text-navy mb-2 tracking-snug">Enroll &amp; Assess</h3>
+        <p class="text-slate-500 text-sm leading-body">Complete a brief intake and health assessment. Our care team reviews your case within 24 hours.</p>
+      </div>
+      <div class="reveal text-center relative z-10" style="transition-delay:.10s">
+        <div class="w-[72px] h-[72px] rounded-full flex items-center justify-center text-white text-2xl font-bold mx-auto mb-6 shadow-teal" style="background:linear-gradient(135deg,#0d1f3c,#0a8f8f)">2</div>
+        <h3 class="font-bold text-navy mb-2 tracking-snug">Build Your Plan</h3>
+        <p class="text-slate-500 text-sm leading-body">A dedicated coordinator creates your personalized adherence plan, medication schedule, and check-in cadence.</p>
+      </div>
+      <div class="reveal text-center relative z-10" style="transition-delay:.16s">
+        <div class="w-[72px] h-[72px] rounded-full flex items-center justify-center text-white text-2xl font-bold mx-auto mb-6 shadow-teal" style="background:linear-gradient(135deg,#0d1f3c,#0a8f8f)">3</div>
+        <h3 class="font-bold text-navy mb-2 tracking-snug">Stay Connected</h3>
+        <p class="text-slate-500 text-sm leading-body">Daily reminders, symptom tracking, and care team access via app, phone, or telehealth visits.</p>
+      </div>
+      <div class="reveal text-center relative z-10" style="transition-delay:.22s">
+        <div class="w-[72px] h-[72px] rounded-full flex items-center justify-center text-white text-2xl font-bold mx-auto mb-6 shadow-teal" style="background:linear-gradient(135deg,#0d1f3c,#0a8f8f)">4</div>
+        <h3 class="font-bold text-navy mb-2 tracking-snug">Track &amp; Improve</h3>
+        <p class="text-slate-500 text-sm leading-body">Monthly progress reviews. Your plan evolves as your health improves, keeping you on the right path.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════════════════
+     BENEFITS + PATIENT INFO
+═══════════════════════════════════════════════════════ -->
+<section id="benefits" class="py-28 section-alt">
+  <div class="max-w-6xl mx-auto px-6">
+    <div class="grid lg:grid-cols-2 gap-16 items-start">
+
+      <!-- Benefits list -->
+      <div class="reveal">
+        <span class="inline-block text-xs font-bold tracking-widest uppercase text-teal bg-teal-50 px-4 py-2 rounded-full mb-5">Patient Benefits</span>
+        <h2 class="serif text-navy tracking-tight leading-[1.15] mb-8" style="font-size:clamp(28px,3.5vw,42px)">What You Get with PAP</h2>
+        <div class="space-y-4">
+          <div class="bg-white rounded-xl p-5 flex gap-4 shadow-card border border-slate-100 card-hover">
+            <div class="w-10 h-10 rounded-lg bg-emerald-50 flex items-center justify-center text-emerald-500 font-bold text-lg flex-shrink-0">✓</div>
+            <div>
+              <div class="font-semibold text-navy mb-1">Dedicated Care Coordinator</div>
+              <div class="text-slate-500 text-sm leading-body">A single point of contact who knows your history and advocates for you across all providers.</div>
+            </div>
+          </div>
+          <div class="bg-white rounded-xl p-5 flex gap-4 shadow-card border border-slate-100 card-hover">
+            <div class="w-10 h-10 rounded-lg bg-emerald-50 flex items-center justify-center text-emerald-500 font-bold text-lg flex-shrink-0">✓</div>
+            <div>
+              <div class="font-semibold text-navy mb-1">Smart Medication Reminders</div>
+              <div class="text-slate-500 text-sm leading-body">Personalized alerts via SMS, app, or phone call — never miss a dose or appointment.</div>
+            </div>
+          </div>
+          <div class="bg-white rounded-xl p-5 flex gap-4 shadow-card border border-slate-100 card-hover">
+            <div class="w-10 h-10 rounded-lg bg-emerald-50 flex items-center justify-center text-emerald-500 font-bold text-lg flex-shrink-0">✓</div>
+            <div>
+              <div class="font-semibold text-navy mb-1">Telehealth Access</div>
+              <div class="text-slate-500 text-sm leading-body">Secure video or phone consultations with your care team from the comfort of home.</div>
+            </div>
+          </div>
+          <div class="bg-white rounded-xl p-5 flex gap-4 shadow-card border border-slate-100 card-hover">
+            <div class="w-10 h-10 rounded-lg bg-emerald-50 flex items-center justify-center text-emerald-500 font-bold text-lg flex-shrink-0">✓</div>
+            <div>
+              <div class="font-semibold text-navy mb-1">Educational Resource Library</div>
+              <div class="text-slate-500 text-sm leading-body">Condition-specific guides, videos, and tools to understand and manage your health better.</div>
+            </div>
+          </div>
+          <div class="bg-white rounded-xl p-5 flex gap-4 shadow-card border border-slate-100 card-hover">
+            <div class="w-10 h-10 rounded-lg bg-emerald-50 flex items-center justify-center text-emerald-500 font-bold text-lg flex-shrink-0">✓</div>
+            <div>
+              <div class="font-semibold text-navy mb-1">Family &amp; Caregiver Support</div>
+              <div class="text-slate-500 text-sm leading-body">Tools and resources for caregivers, plus optional family coordination to build a strong support network.</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Patient Info panel -->
+      <div class="reveal" style="transition-delay:.14s">
+        <div class="rounded-2xl p-9 text-white sticky top-24 grain relative overflow-hidden" style="background:linear-gradient(150deg,#0d1f3c 0%,#1a4fad 60%,#0a8f8f 100%)">
+          <div class="relative z-10">
+            <h3 class="serif text-2xl mb-2 tracking-snug">Important Patient Information</h3>
+            <p class="text-white/60 text-sm mb-7">What to know before and during enrollment.</p>
+            <div class="space-y-4">
+              <div class="flex gap-3 rounded-xl p-4" style="background:rgba(255,255,255,0.09)">
+                <span class="text-xl flex-shrink-0 mt-0.5">📋</span>
+                <div>
+                  <div class="font-semibold text-sm mb-1">Eligibility</div>
+                  <div class="text-white/60 text-xs leading-body">Open to patients 18+ with a confirmed diagnosis in one of our six care categories and an active relationship with a participating provider.</div>
+                </div>
+              </div>
+              <div class="flex gap-3 rounded-xl p-4" style="background:rgba(255,255,255,0.09)">
+                <span class="text-xl flex-shrink-0 mt-0.5">💳</span>
+                <div>
+                  <div class="font-semibold text-sm mb-1">Insurance &amp; Cost</div>
+                  <div class="text-white/60 text-xs leading-body">Covered by most major plans including Medicare and Medicaid. Financial assistance available for uninsured patients.</div>
+                </div>
+              </div>
+              <div class="flex gap-3 rounded-xl p-4" style="background:rgba(255,255,255,0.09)">
+                <span class="text-xl flex-shrink-0 mt-0.5">🔒</span>
+                <div>
+                  <div class="font-semibold text-sm mb-1">Privacy &amp; HIPAA</div>
+                  <div class="text-white/60 text-xs leading-body">All health data is fully HIPAA-protected. Your information is never sold or shared without explicit written consent.</div>
+                </div>
+              </div>
+              <div class="flex gap-3 rounded-xl p-4" style="background:rgba(255,255,255,0.09)">
+                <span class="text-xl flex-shrink-0 mt-0.5">🚪</span>
+                <div>
+                  <div class="font-semibold text-sm mb-1">Voluntary Participation</div>
+                  <div class="text-white/60 text-xs leading-body">Completely voluntary — withdraw any time without affecting your ongoing medical care.</div>
+                </div>
+              </div>
+              <div class="flex gap-3 rounded-xl p-4" style="background:rgba(255,255,255,0.09)">
+                <span class="text-xl flex-shrink-0 mt-0.5">⏱️</span>
+                <div>
+                  <div class="font-semibold text-sm mb-1">Program Duration</div>
+                  <div class="text-white/60 text-xs leading-body">Initial enrollment is 6 months with free renewal. Most patients continue long-term for ongoing support.</div>
+                </div>
+              </div>
+            </div>
+            <a href="#enroll" class="block mt-7 text-center py-3.5 rounded-xl font-semibold text-white text-sm shadow-teal transition-all duration-200 hover:opacity-90 btn-press" style="background:linear-gradient(135deg,#0a8f8f,#1ab3b3)">
+              Enroll Now — It's Free →
+            </a>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════════════════
+     FAQ
+═══════════════════════════════════════════════════════ -->
+<section id="faq" class="py-28">
+  <div class="max-w-6xl mx-auto px-6">
+    <div class="text-center mb-16 reveal">
+      <span class="inline-block text-xs font-bold tracking-widest uppercase text-teal bg-teal-50 px-4 py-2 rounded-full mb-5">FAQ</span>
+      <h2 class="serif text-navy tracking-tight leading-[1.15] mb-4" style="font-size:clamp(28px,3.5vw,42px)">Frequently Asked Questions</h2>
+      <p class="text-slate-500 text-lg max-w-xl mx-auto leading-body">Answers to the most common questions about the Patient Adherence Program.</p>
+    </div>
+    <div class="max-w-3xl mx-auto space-y-3 reveal" style="transition-delay:.1s">
+
+      <div class="faq-item bg-white rounded-xl border border-slate-200 shadow-card overflow-hidden">
+        <button class="faq-q w-full flex justify-between items-center p-6 text-left font-semibold text-navy hover:bg-slate-50 transition-colors duration-150">
+          What is patient adherence and why does it matter?
+          <span class="faq-chevron w-7 h-7 rounded-full bg-slate-100 flex items-center justify-center flex-shrink-0 ml-4 text-slate-400 text-xs">▾</span>
+        </button>
+        <div class="faq-body px-6 text-slate-500 text-sm leading-body">
+          Patient adherence means consistently following your prescribed treatment — taking medications on time, attending appointments, and making lifestyle changes. Non-adherence leads to 125,000 preventable deaths and $300 billion in excess healthcare costs in the U.S. each year. Our program directly addresses this gap.
+        </div>
+      </div>
+
+      <div class="faq-item bg-white rounded-xl border border-slate-200 shadow-card overflow-hidden">
+        <button class="faq-q w-full flex justify-between items-center p-6 text-left font-semibold text-navy hover:bg-slate-50 transition-colors duration-150">
+          How do I enroll in the program?
+          <span class="faq-chevron w-7 h-7 rounded-full bg-slate-100 flex items-center justify-center flex-shrink-0 ml-4 text-slate-400 text-xs">▾</span>
+        </button>
+        <div class="faq-body px-6 text-slate-500 text-sm leading-body">
+          Fill out our online form or call our care team. You'll complete a short health assessment, and within 24 hours a coordinator will contact you to confirm eligibility and begin building your plan. A doctor's referral is welcome but not required.
+        </div>
+      </div>
+
+      <div class="faq-item bg-white rounded-xl border border-slate-200 shadow-card overflow-hidden">
+        <button class="faq-q w-full flex justify-between items-center p-6 text-left font-semibold text-navy hover:bg-slate-50 transition-colors duration-150">
+          Is the program covered by my insurance?
+          <span class="faq-chevron w-7 h-7 rounded-full bg-slate-100 flex items-center justify-center flex-shrink-0 ml-4 text-slate-400 text-xs">▾</span>
+        </button>
+        <div class="faq-body px-6 text-slate-500 text-sm leading-body">
+          Yes — PAP is covered by most major commercial plans, Medicare Part B, and Medicaid in participating states. For uninsured patients, we offer a sliding-scale financial assistance program. Contact our billing team for a free benefits check before enrolling.
+        </div>
+      </div>
+
+      <div class="faq-item bg-white rounded-xl border border-slate-200 shadow-card overflow-hidden">
+        <button class="faq-q w-full flex justify-between items-center p-6 text-left font-semibold text-navy hover:bg-slate-50 transition-colors duration-150">
+          Will PAP replace my current doctor or care team?
+          <span class="faq-chevron w-7 h-7 rounded-full bg-slate-100 flex items-center justify-center flex-shrink-0 ml-4 text-slate-400 text-xs">▾</span>
+        </button>
+        <div class="faq-body px-6 text-slate-500 text-sm leading-body">
+          No. PAP complements — never replaces — your existing care relationships. Our coordinators work alongside your physicians and pharmacists to keep everyone aligned. Progress reports are shared with your care team only with your consent.
+        </div>
+      </div>
+
+      <div class="faq-item bg-white rounded-xl border border-slate-200 shadow-card overflow-hidden">
+        <button class="faq-q w-full flex justify-between items-center p-6 text-left font-semibold text-navy hover:bg-slate-50 transition-colors duration-150">
+          How much time does the program require from me?
+          <span class="faq-chevron w-7 h-7 rounded-full bg-slate-100 flex items-center justify-center flex-shrink-0 ml-4 text-slate-400 text-xs">▾</span>
+        </button>
+        <div class="faq-body px-6 text-slate-500 text-sm leading-body">
+          Most patients spend 5–15 minutes per week on program activities — logging medications, reviewing reminders, and brief check-ins. A monthly 30-minute coordinator call is included. Everything is designed to fit your existing routine.
+        </div>
+      </div>
+
+      <div class="faq-item bg-white rounded-xl border border-slate-200 shadow-card overflow-hidden">
+        <button class="faq-q w-full flex justify-between items-center p-6 text-left font-semibold text-navy hover:bg-slate-50 transition-colors duration-150">
+          Can family members or caregivers be involved?
+          <span class="faq-chevron w-7 h-7 rounded-full bg-slate-100 flex items-center justify-center flex-shrink-0 ml-4 text-slate-400 text-xs">▾</span>
+        </button>
+        <div class="faq-body px-6 text-slate-500 text-sm leading-body">
+          Absolutely. With your permission we can include a caregiver in your plan, give them access to reminders, and involve them in coordinator calls. A strong support network is one of the biggest predictors of long-term adherence success.
+        </div>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════════════════
+     ENROLL CTA
+═══════════════════════════════════════════════════════ -->
+<section id="enroll" class="py-28 grain relative overflow-hidden" style="background:linear-gradient(150deg,#0d1f3c 0%,#1a4fad 55%,#0a8f8f 100%)">
+  <div class="absolute right-[-160px] bottom-[-160px] w-[480px] h-[480px] rounded-full border border-white/5 pointer-events-none"></div>
+  <div class="relative z-10 max-w-6xl mx-auto px-6 text-center reveal">
+    <span class="inline-block text-xs font-bold tracking-widest uppercase text-white/70 bg-white/10 border border-white/15 px-4 py-2 rounded-full mb-6">Start Today</span>
+    <h2 class="serif text-white tracking-tight leading-[1.15] mb-5" style="font-size:clamp(32px,5vw,52px)">Ready to Take Control<br>of Your Health?</h2>
+    <p class="text-white/65 text-lg mb-12 max-w-lg mx-auto leading-body">Join over 12,000 patients already improving their health outcomes with PAP. Enrollment is free.</p>
+    <form class="flex flex-wrap gap-3 justify-center max-w-[520px] mx-auto mb-5" onsubmit="handleEnroll(event)">
+      <input type="email" placeholder="Enter your email address" required class="flex-1 min-w-[220px] px-6 py-4 rounded-full text-navy font-medium text-sm outline-none focus:ring-2 focus:ring-teal-300 shadow-navy" />
+      <button type="submit" class="px-7 py-4 rounded-full font-semibold text-white shadow-teal btn-press transition-all duration-200 hover:shadow-teal hover:-translate-y-0.5 whitespace-nowrap" style="background:linear-gradient(135deg,#0a8f8f,#1ab3b3)">
+        Enroll for Free →
+      </button>
+    </form>
+    <p class="text-white/45 text-xs mb-14">No credit card required · HIPAA compliant · Cancel anytime</p>
+    <div class="flex flex-wrap justify-center gap-8">
+      <div class="flex items-center gap-2.5 text-white/70 text-sm font-medium"><span>✅</span> Free enrollment</div>
+      <div class="flex items-center gap-2.5 text-white/70 text-sm font-medium"><span>✅</span> Insurance accepted</div>
+      <div class="flex items-center gap-2.5 text-white/70 text-sm font-medium"><span>✅</span> 24/7 care support</div>
+      <div class="flex items-center gap-2.5 text-white/70 text-sm font-medium"><span>✅</span> No commitment</div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════════════════
+     CONTACT
+═══════════════════════════════════════════════════════ -->
+<section id="contact" class="py-28">
+  <div class="max-w-6xl mx-auto px-6">
+    <div class="grid lg:grid-cols-2 gap-16 items-start">
+      <div class="reveal">
+        <span class="inline-block text-xs font-bold tracking-widest uppercase text-teal bg-teal-50 px-4 py-2 rounded-full mb-5">Get in Touch</span>
+        <h2 class="serif text-navy tracking-tight leading-[1.15] mb-5" style="font-size:clamp(28px,3.5vw,42px)">Contact Our Care Team</h2>
+        <p class="text-slate-500 text-lg leading-body mb-10">Our coordinators are available 7 days a week to answer questions and help you get started.</p>
+        <div class="space-y-6">
+          <div class="flex gap-4">
+            <div class="w-12 h-12 rounded-xl flex items-center justify-center bg-teal-50 text-xl flex-shrink-0">📞</div>
+            <div>
+              <div class="text-xs font-bold uppercase tracking-widest text-slate-400 mb-1">Phone</div>
+              <div class="font-medium text-navy">1-800-PAP-CARE (1-800-727-2273)</div>
+            </div>
+          </div>
+          <div class="flex gap-4">
+            <div class="w-12 h-12 rounded-xl flex items-center justify-center bg-teal-50 text-xl flex-shrink-0">✉️</div>
+            <div>
+              <div class="text-xs font-bold uppercase tracking-widest text-slate-400 mb-1">Email</div>
+              <div class="font-medium text-navy">support@papprogram.org</div>
+            </div>
+          </div>
+          <div class="flex gap-4">
+            <div class="w-12 h-12 rounded-xl flex items-center justify-center bg-teal-50 text-xl flex-shrink-0">🕐</div>
+            <div>
+              <div class="text-xs font-bold uppercase tracking-widest text-slate-400 mb-1">Hours</div>
+              <div class="font-medium text-navy">Mon–Fri 8am–8pm · Sat–Sun 9am–5pm ET</div>
+            </div>
+          </div>
+          <div class="flex gap-4">
+            <div class="w-12 h-12 rounded-xl flex items-center justify-center bg-teal-50 text-xl flex-shrink-0">📍</div>
+            <div>
+              <div class="text-xs font-bold uppercase tracking-widest text-slate-400 mb-1">Headquarters</div>
+              <div class="font-medium text-navy">1200 Health Innovation Drive, Suite 400<br>Atlanta, GA 30309</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="reveal" style="transition-delay:.14s">
+        <div class="bg-slate-50 rounded-2xl p-9 border border-slate-200">
+          <h3 class="font-bold text-navy text-xl mb-1 tracking-snug">Send Us a Message</h3>
+          <p class="text-slate-500 text-sm mb-7">We'll respond within one business day.</p>
+          <form onsubmit="handleContact(event)">
+            <div class="grid grid-cols-2 gap-4 mb-4">
+              <div>
+                <label class="block text-xs font-semibold text-navy mb-1.5">First Name</label>
+                <input type="text" placeholder="Jane" required class="w-full px-4 py-3 rounded-xl border border-slate-200 bg-white text-sm font-medium outline-none focus:border-teal focus:ring-2 focus:ring-teal-100 transition" />
+              </div>
+              <div>
+                <label class="block text-xs font-semibold text-navy mb-1.5">Last Name</label>
+                <input type="text" placeholder="Smith" required class="w-full px-4 py-3 rounded-xl border border-slate-200 bg-white text-sm font-medium outline-none focus:border-teal focus:ring-2 focus:ring-teal-100 transition" />
+              </div>
+            </div>
+            <div class="mb-4">
+              <label class="block text-xs font-semibold text-navy mb-1.5">Email Address</label>
+              <input type="email" placeholder="jane@email.com" required class="w-full px-4 py-3 rounded-xl border border-slate-200 bg-white text-sm font-medium outline-none focus:border-teal focus:ring-2 focus:ring-teal-100 transition" />
+            </div>
+            <div class="mb-4">
+              <label class="block text-xs font-semibold text-navy mb-1.5">Patient Category</label>
+              <select class="w-full px-4 py-3 rounded-xl border border-slate-200 bg-white text-sm font-medium outline-none focus:border-teal focus:ring-2 focus:ring-teal-100 transition appearance-none">
+                <option value="">Select your primary condition area</option>
+                <option>Chronic Disease Management</option>
+                <option>Mental Health &amp; Behavioral</option>
+                <option>Oncology &amp; Cancer Care</option>
+                <option>Post-Surgical Recovery</option>
+                <option>Senior &amp; Geriatric Care</option>
+                <option>Respiratory &amp; Pulmonary</option>
+                <option>Other / Not Sure</option>
+              </select>
+            </div>
+            <div class="mb-6">
+              <label class="block text-xs font-semibold text-navy mb-1.5">Message</label>
+              <textarea placeholder="Tell us how we can help you..." rows="4" class="w-full px-4 py-3 rounded-xl border border-slate-200 bg-white text-sm font-medium outline-none focus:border-teal focus:ring-2 focus:ring-teal-100 transition resize-none"></textarea>
+            </div>
+            <button type="submit" class="contact-submit w-full py-4 rounded-xl font-semibold text-white text-sm shadow-teal transition-all duration-200 hover:opacity-90 hover:-translate-y-0.5 btn-press" style="background:linear-gradient(135deg,#0d1f3c,#0a8f8f)">
+              Send Message →
+            </button>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════════════════
+     FOOTER
+═══════════════════════════════════════════════════════ -->
+<footer style="background:#0d1f3c">
+  <div class="max-w-6xl mx-auto px-6 pt-16 pb-8">
+    <div class="grid md:grid-cols-2 lg:grid-cols-4 gap-12 mb-12">
+      <div class="lg:col-span-1">
+        <div class="flex items-center gap-3 mb-4">
+          <div class="w-9 h-9 rounded-xl flex items-center justify-center text-white font-bold shadow-teal-sm" style="background:linear-gradient(135deg,#0a8f8f,#1ab3b3)">✚</div>
+          <span class="text-white font-semibold text-lg">PAP</span>
+        </div>
+        <p class="text-white/45 text-sm leading-body max-w-[240px]">Empowering patients to stay on track with personalized support, education, and care coordination.</p>
+      </div>
+      <div>
+        <div class="text-xs font-bold uppercase tracking-widest text-white/40 mb-5">Program</div>
+        <div class="space-y-3">
+          <a href="#about"      class="block text-white/60 text-sm hover:text-white transition-colors duration-150">About PAP</a>
+          <a href="#categories" class="block text-white/60 text-sm hover:text-white transition-colors duration-150">Patient Categories</a>
+          <a href="#how"        class="block text-white/60 text-sm hover:text-white transition-colors duration-150">How It Works</a>
+          <a href="#benefits"   class="block text-white/60 text-sm hover:text-white transition-colors duration-150">Benefits</a>
+          <a href="#enroll"     class="block text-white/60 text-sm hover:text-white transition-colors duration-150">Enroll Now</a>
+        </div>
+      </div>
+      <div>
+        <div class="text-xs font-bold uppercase tracking-widest text-white/40 mb-5">Resources</div>
+        <div class="space-y-3">
+          <a href="#faq"     class="block text-white/60 text-sm hover:text-white transition-colors duration-150">FAQ</a>
+          <a href="#contact" class="block text-white/60 text-sm hover:text-white transition-colors duration-150">Contact Us</a>
+          <a href="#"        class="block text-white/60 text-sm hover:text-white transition-colors duration-150">Patient Portal</a>
+          <a href="#"        class="block text-white/60 text-sm hover:text-white transition-colors duration-150">Provider Resources</a>
+          <a href="#"        class="block text-white/60 text-sm hover:text-white transition-colors duration-150">Insurance Info</a>
+        </div>
+      </div>
+      <div>
+        <div class="text-xs font-bold uppercase tracking-widest text-white/40 mb-5">Legal</div>
+        <div class="space-y-3">
+          <a href="#" class="block text-white/60 text-sm hover:text-white transition-colors duration-150">Privacy Policy</a>
+          <a href="#" class="block text-white/60 text-sm hover:text-white transition-colors duration-150">Terms of Service</a>
+          <a href="#" class="block text-white/60 text-sm hover:text-white transition-colors duration-150">HIPAA Notice</a>
+          <a href="#" class="block text-white/60 text-sm hover:text-white transition-colors duration-150">Accessibility</a>
+          <a href="#" class="block text-white/60 text-sm hover:text-white transition-colors duration-150">Nondiscrimination</a>
+        </div>
+      </div>
+    </div>
+    <div class="pt-8 border-t border-white/8 flex flex-wrap justify-between items-center gap-4">
+      <div class="text-white/35 text-xs">© 2024 Patient Adherence Program. All rights reserved.</div>
+      <div class="flex gap-6">
+        <a href="#" class="text-white/35 text-xs hover:text-white/70 transition-colors">Privacy</a>
+        <a href="#" class="text-white/35 text-xs hover:text-white/70 transition-colors">Terms</a>
+        <a href="#" class="text-white/35 text-xs hover:text-white/70 transition-colors">Sitemap</a>
+      </div>
+    </div>
+  </div>
+</footer>
+
+<!-- ═══════════════════════════════════════════════════════
+     JAVASCRIPT
+═══════════════════════════════════════════════════════ -->
+<script>
+  // Navbar — scroll glass effect
+  const navbar = document.getElementById('navbar');
+  const updateNav = () => {
+    if (window.scrollY > 40) {
+      navbar.style.background = 'rgba(13,31,60,0.92)';
+      navbar.style.backdropFilter = 'blur(14px)';
+      navbar.style.borderBottom = '1px solid rgba(255,255,255,0.08)';
+      navbar.style.boxShadow = '0 4px 24px rgba(13,31,60,0.3)';
+    } else {
+      navbar.style.background = 'rgba(13,31,60,0)';
+      navbar.style.backdropFilter = 'blur(0px)';
+      navbar.style.borderBottom = 'none';
+      navbar.style.boxShadow = 'none';
+    }
+  };
+  window.addEventListener('scroll', updateNav, { passive: true });
+  updateNav();
+
+  // Scroll-reveal (spring easing via CSS)
+  const observer = new IntersectionObserver((entries) => {
+    entries.forEach((e, i) => {
+      if (e.isIntersecting) e.target.classList.add('visible');
+    });
+  }, { threshold: 0.10 });
+  document.querySelectorAll('.reveal').forEach(el => observer.observe(el));
+
+  // FAQ accordion
+  document.querySelectorAll('.faq-q').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const item = btn.closest('.faq-item');
+      const isOpen = item.classList.contains('open');
+      document.querySelectorAll('.faq-item.open').forEach(i => i.classList.remove('open'));
+      if (!isOpen) item.classList.add('open');
+    });
+  });
+
+  // Smooth scroll
+  document.querySelectorAll('a[href^="#"]').forEach(a => {
+    a.addEventListener('click', e => {
+      const target = document.querySelector(a.getAttribute('href'));
+      if (target) {
+        e.preventDefault();
+        window.scrollTo({ top: target.offsetTop - 70, behavior: 'smooth' });
+      }
+    });
+  });
+
+  // Enroll form
+  function handleEnroll(e) {
+    e.preventDefault();
+    const btn = e.target.querySelector('button');
+    const orig = btn.textContent;
+    btn.textContent = "✓ You're on the list!";
+    btn.style.background = 'linear-gradient(135deg,#059669,#34d399)';
+    e.target.querySelector('input').value = '';
+    setTimeout(() => { btn.textContent = orig; btn.style.background = ''; }, 4500);
+  }
+
+  // Contact form
+  function handleContact(e) {
+    e.preventDefault();
+    const btn = e.target.querySelector('.contact-submit');
+    btn.textContent = "✓ Message Sent! We'll be in touch.";
+    btn.style.background = 'linear-gradient(135deg,#059669,#34d399)';
+    setTimeout(() => { btn.textContent = 'Send Message →'; btn.style.background = ''; }, 5000);
+  }
+</script>
+</body>
+</html>
