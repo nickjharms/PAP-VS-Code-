@@ -1,0 +1,387 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Exercise Logbook — Professional Adherence Program</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            navy:  { DEFAULT: '#0d1f3c', 50: '#e8edf5', 100: '#c5d0e6', 200: '#8fa5cc', 300: '#5a79b3', 400: '#2e5299', 500: '#0d1f3c' },
+            teal:  { DEFAULT: '#0a8f8f', 50: '#e0f5f5', 100: '#b3e6e6', 200: '#66cccc', 300: '#1ab3b3', 400: '#0a8f8f', 500: '#076e6e' },
+            slate: { 50: '#f8fafb', 100: '#f0f4f8', 200: '#dce5ee', 300: '#b8c9d9', 400: '#8ba5bc', 500: '#5f8099', 600: '#3d607d', 700: '#24455e', 800: '#132d42', 900: '#08182a' },
+          },
+          fontFamily: {
+            serif: ['"DM Serif Display"', 'Georgia', 'serif'],
+            sans:  ['Inter', 'system-ui', 'sans-serif'],
+          },
+          letterSpacing: { tight: '-0.03em', snug: '-0.015em' },
+          lineHeight: { body: '1.75' },
+          boxShadow: {
+            'card':    '0 2px 8px rgba(13,31,60,0.06), 0 8px 32px rgba(13,31,60,0.08)',
+            'card-lg': '0 4px 16px rgba(13,31,60,0.08), 0 16px 48px rgba(13,31,60,0.12)',
+            'teal':    '0 8px 24px rgba(10,143,143,0.30)',
+            'teal-sm': '0 4px 12px rgba(10,143,143,0.22)',
+            'navy':    '0 8px 24px rgba(13,31,60,0.32)',
+          },
+        }
+      }
+    }
+  </script>
+
+  <style>
+    .grain::after {
+      content: '';
+      position: absolute; inset: 0; pointer-events: none; z-index: 0;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='300' height='300'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.75' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='300' height='300' filter='url(%23n)' opacity='0.04'/%3E%3C/svg%3E");
+      background-repeat: repeat;
+    }
+    body { font-family: 'Inter', sans-serif; color: #132d42; }
+    h1,h2,h3,.serif { font-family: 'DM Serif Display', serif; }
+    .tracking-tight { letter-spacing: -0.03em; }
+    .tracking-snug  { letter-spacing: -0.015em; }
+
+    .hero-bg {
+      background:
+        radial-gradient(ellipse 80% 60% at 70% 40%, rgba(10,143,143,0.22) 0%, transparent 70%),
+        radial-gradient(ellipse 60% 80% at 20% 70%, rgba(30,80,160,0.18) 0%, transparent 65%),
+        radial-gradient(ellipse 100% 100% at 50% 0%, rgba(13,31,60,1) 0%, #0d1f3c 100%);
+    }
+
+    .btn-press:active { transform: scale(0.97); }
+
+    ::-webkit-scrollbar { width: 6px; }
+    ::-webkit-scrollbar-track { background: #f0f4f8; }
+    ::-webkit-scrollbar-thumb { background: #8ba5bc; border-radius: 3px; }
+
+    /* Accordion */
+    .accordion-body {
+      max-height: 0;
+      overflow: hidden;
+      transition: max-height 0.4s cubic-bezier(0.22,1,0.36,1), padding 0.3s cubic-bezier(0.22,1,0.36,1);
+    }
+    .accordion-item.open .accordion-body {
+      max-height: 600px;
+      padding-top: 20px;
+      padding-bottom: 28px;
+    }
+    .accordion-chevron {
+      transition: transform 0.3s cubic-bezier(0.22,1,0.36,1);
+    }
+    .accordion-item.open .accordion-chevron {
+      transform: rotate(180deg);
+    }
+
+    /* Input field */
+    .dash-input {
+      width: 100%;
+      padding: 12px 16px;
+      border-radius: 12px;
+      border: 1.5px solid #dce5ee;
+      background: #fff;
+      font-size: 14px;
+      font-family: 'Inter', sans-serif;
+      color: #132d42;
+      outline: none;
+      transition: border-color 0.15s, box-shadow 0.15s;
+    }
+    .dash-input:focus {
+      border-color: #0a8f8f;
+      box-shadow: 0 0 0 3px rgba(10,143,143,0.12);
+    }
+    .dash-input::placeholder { color: #8ba5bc; }
+
+    /* Exercise pill */
+    .exercise-pill {
+      transition: transform 0.15s cubic-bezier(0.22,1,0.36,1), opacity 0.15s;
+    }
+    .exercise-pill:hover {
+      transform: translateY(-1px);
+    }
+  </style>
+</head>
+<body class="antialiased" style="background:#f8fafb">
+
+<!-- ═══════════════════════════════════════════════════════
+     NAVBAR
+═══════════════════════════════════════════════════════ -->
+<nav class="fixed top-0 inset-x-0 z-50"
+     style="background:rgba(13,31,60,0.92);backdrop-filter:blur(14px);
+            border-bottom:1px solid rgba(255,255,255,0.08);
+            box-shadow:0 4px 24px rgba(13,31,60,0.3)">
+  <div class="max-w-6xl mx-auto px-6">
+    <div class="flex items-center justify-between h-[70px]">
+      <div class="flex items-center gap-8">
+        <a href="index.html" class="flex items-center gap-3 group">
+          <div class="w-9 h-9 rounded-xl flex items-center justify-center text-white font-bold text-base shadow-teal-sm"
+               style="background:linear-gradient(135deg,#0a8f8f,#1ab3b3)">✚</div>
+          <span class="text-white font-semibold text-lg tracking-snug hidden md:inline">Professional Adherence Program</span>
+        </a>
+        <nav class="hidden sm:flex items-center gap-6">
+          <a href="dashboard.html" class="text-white/70 hover:text-white text-sm font-medium" style="transition:color 0.15s">Dashboard</a>
+          <a href="exercise-logbook.html" class="text-white text-sm font-medium" style="transition:color 0.15s">Exercise Logbook</a>
+        </nav>
+      </div>
+      <!-- Right: user greeting + logout -->
+      <div class="flex items-center gap-4">
+        <div class="flex items-center gap-3">
+          <div class="w-8 h-8 rounded-full flex items-center justify-center text-white text-xs font-bold"
+               style="background:linear-gradient(135deg,#0a8f8f,#1ab3b3)"
+               id="user-initial">N</div>
+          <span class="text-white/80 text-sm font-medium hidden sm:inline" id="user-greeting">Welcome, Nickj</span>
+        </div>
+        <button onclick="handleLogout()"
+                class="inline-flex items-center gap-2 px-4 py-2 rounded-full text-sm font-semibold
+                       text-white/70 border border-white/20
+                       hover:bg-white/10 hover:text-white
+                       focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal-300
+                       btn-press"
+                style="transition: color 0.15s, background 0.15s">
+          Log Out
+        </button>
+      </div>
+    </div>
+  </div>
+</nav>
+
+<!-- ═══════════════════════════════════════════════════════
+     WELCOME HEADER
+═══════════════════════════════════════════════════════ -->
+<section class="hero-bg grain relative overflow-hidden pt-24 pb-10">
+  <div class="relative z-10 max-w-6xl mx-auto px-6">
+    <h1 class="serif text-white tracking-tight leading-[1.15] mb-2"
+        style="font-size:clamp(24px,3vw,36px)">
+      Exercise Logbook
+    </h1>
+    <p class="text-white/55 text-sm">Browse pathologies and assign exercises to build treatment protocols.</p>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════════════════
+     PATHOLOGY ACCORDION CARDS
+═══════════════════════════════════════════════════════ -->
+<main class="py-10" style="background:#f8fafb">
+  <div class="max-w-3xl mx-auto px-6 space-y-4" id="pathology-list">
+    <!-- Populated by JS -->
+  </div>
+</main>
+
+<!-- ═══════════════════════════════════════════════════════
+     JAVASCRIPT
+═══════════════════════════════════════════════════════ -->
+<script>
+  // ── Auth guard ──
+  const user = JSON.parse(localStorage.getItem('pap_user') || 'null');
+  if (!user) { window.location.href = 'login.html'; }
+
+  // ── Pathology data ──
+  const PATHOLOGIES = [
+    {
+      id: 'acl-tear',
+      name: 'ACL Tear',
+      icon: '🦵',
+      accentFrom: '#0a8f8f',
+      accentTo: '#1ab3b3',
+      exercises: ['Straight Leg Raises', 'Quad Sets', 'Heel Slides', 'Hamstring Curls', 'Mini Squats', 'Step-ups', 'Balance Board']
+    },
+    {
+      id: 'achilles-rupture',
+      name: 'Achilles Rupture',
+      icon: '🦶',
+      accentFrom: '#7c3aed',
+      accentTo: '#a78bfa',
+      exercises: ['Ankle Pumps', 'Toe Raises', 'Eccentric Heel Drops', 'Seated Calf Stretch', 'Resistance Band Dorsiflexion', 'Single-Leg Balance', 'Heel Walking']
+    },
+    {
+      id: 'parkinsons',
+      name: "Parkinson's",
+      icon: '🧠',
+      accentFrom: '#dc2626',
+      accentTo: '#fb7185',
+      exercises: ['Sit-to-Stands', 'Marching in Place', 'Tandem Walking', 'Trunk Rotations', 'Arm Swings', 'Stair Walking', 'Seated Boxing']
+    },
+    {
+      id: 'patella-tendon-syndrome',
+      name: 'Patella Tendon Syndrome',
+      icon: '🦿',
+      accentFrom: '#d97706',
+      accentTo: '#fbbf24',
+      exercises: ['Isometric Quad Holds', 'Wall Sits', 'Eccentric Squats', 'Straight Leg Raises', 'Step-downs', 'Terminal Knee Extensions', 'Single-Leg Press']
+    },
+    {
+      id: 'total-hip-arthroplasty',
+      name: 'Total Hip Arthroplasty',
+      icon: '🏥',
+      accentFrom: '#059669',
+      accentTo: '#34d399',
+      exercises: ['Ankle Pumps', 'Gluteal Sets', 'Hip Abduction', 'Heel Slides', 'Sit-to-Stands', 'Stair Walking', 'Standing Hip Flexion']
+    },
+    {
+      id: 'total-knee-arthroplasty',
+      name: 'Total Knee Arthroplasty',
+      icon: '🩻',
+      accentFrom: '#0284c7',
+      accentTo: '#38bdf8',
+      exercises: ['Quad Sets', 'Straight Leg Raises', 'Heel Slides', 'Seated Knee Bends', 'Sit-to-Stands', 'Step-ups', 'Stair Walking']
+    }
+  ];
+
+  // ── Data helpers ──
+  function getAssignments() {
+    return JSON.parse(localStorage.getItem('pap_exercise_assignments') || '{}');
+  }
+  function saveAssignments(data) {
+    localStorage.setItem('pap_exercise_assignments', JSON.stringify(data));
+  }
+
+  // ── Render ──
+  function renderPathologies() {
+    const assignments = getAssignments();
+    const container = document.getElementById('pathology-list');
+
+    container.innerHTML = PATHOLOGIES.map(path => {
+      const assigned = assignments[path.id] || [];
+      const available = path.exercises.filter(ex => !assigned.includes(ex));
+      const count = assigned.length;
+
+      const optionsHtml = available.length > 0
+        ? `<option value="">Select an exercise...</option>` + available.map(ex => `<option value="${ex}">${ex}</option>`).join('')
+        : `<option value="">All exercises assigned</option>`;
+
+      const pillsHtml = assigned.length > 0
+        ? assigned.map(ex => `
+            <span class="exercise-pill inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold text-white"
+                  style="background:linear-gradient(135deg,${path.accentFrom},${path.accentTo})">
+              ${ex}
+              <button onclick="removeExercise('${path.id}', '${ex}')"
+                      class="ml-0.5 w-4 h-4 rounded-full flex items-center justify-center text-white/70 hover:text-white hover:bg-white/20
+                             focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/50"
+                      style="font-size:10px;transition:background 0.15s,color 0.15s"
+                      title="Remove ${ex}">✕</button>
+            </span>`).join('')
+        : `<span class="text-slate-400 text-xs">No exercises assigned yet. Use the dropdown above to add exercises.</span>`;
+
+      return `
+        <div class="accordion-item bg-white rounded-2xl shadow-card overflow-hidden relative" data-id="${path.id}">
+          <!-- Accent bar -->
+          <div class="absolute top-0 left-0 right-0 h-[3px]"
+               style="background:linear-gradient(90deg,${path.accentFrom},${path.accentTo})"></div>
+
+          <!-- Header (clickable) -->
+          <button onclick="toggleAccordion('${path.id}')"
+                  class="w-full text-left px-7 py-5 flex items-center gap-4
+                         hover:bg-slate-50/50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal-300
+                         focus-visible:ring-inset"
+                  style="transition:background 0.15s">
+            <div class="w-10 h-10 rounded-xl flex items-center justify-center text-lg flex-shrink-0"
+                 style="background:linear-gradient(135deg,${path.accentFrom}22,${path.accentTo}22)">
+              ${path.icon}
+            </div>
+            <div class="flex-1 min-w-0">
+              <div class="font-semibold text-navy text-sm tracking-snug">${path.name}</div>
+              <div class="text-slate-400 text-xs mt-0.5">${count} exercise${count !== 1 ? 's' : ''} assigned</div>
+            </div>
+            <svg class="accordion-chevron w-5 h-5 text-slate-400 flex-shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7"/>
+            </svg>
+          </button>
+
+          <!-- Body (accordion) -->
+          <div class="accordion-body px-7">
+            <!-- Add exercise row -->
+            <div class="flex gap-3 mb-5">
+              <select id="select-${path.id}" class="dash-input flex-1" style="appearance:none;
+                      background-image:url('data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%2212%22 height=%2212%22 viewBox=%220 0 12 12%22%3E%3Cpath d=%22M2 4l4 4 4-4%22 fill=%22none%22 stroke=%22%238ba5bc%22 stroke-width=%221.5%22 stroke-linecap=%22round%22 stroke-linejoin=%22round%22/%3E%3C/svg%3E');
+                      background-repeat:no-repeat;background-position:right 16px center;padding-right:40px">
+                ${optionsHtml}
+              </select>
+              <button onclick="addExercise('${path.id}')"
+                      class="px-5 py-3 rounded-xl text-sm font-semibold text-white shadow-teal-sm btn-press
+                             focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal-300 flex-shrink-0
+                             ${available.length === 0 ? 'opacity-50 cursor-not-allowed' : ''}"
+                      style="background:linear-gradient(135deg,${path.accentFrom},${path.accentTo});
+                             transition:opacity 0.15s,transform 0.15s"
+                      ${available.length === 0 ? 'disabled' : ''}>
+                + Add
+              </button>
+            </div>
+
+            <!-- Assigned exercises -->
+            <div class="flex flex-wrap gap-2">
+              ${pillsHtml}
+            </div>
+          </div>
+        </div>`;
+    }).join('');
+
+    // Restore open state
+    document.querySelectorAll('.accordion-item').forEach(item => {
+      if (openAccordions.has(item.dataset.id)) {
+        item.classList.add('open');
+      }
+    });
+  }
+
+  // ── Accordion state ──
+  const openAccordions = new Set();
+
+  function toggleAccordion(id) {
+    const item = document.querySelector(`.accordion-item[data-id="${id}"]`);
+    if (item.classList.contains('open')) {
+      item.classList.remove('open');
+      openAccordions.delete(id);
+    } else {
+      item.classList.add('open');
+      openAccordions.add(id);
+    }
+  }
+
+  // ── Add / Remove exercises ──
+  function addExercise(pathId) {
+    const select = document.getElementById('select-' + pathId);
+    const exercise = select.value;
+    if (!exercise) return;
+
+    const assignments = getAssignments();
+    if (!assignments[pathId]) assignments[pathId] = [];
+    if (!assignments[pathId].includes(exercise)) {
+      assignments[pathId].push(exercise);
+      saveAssignments(assignments);
+    }
+    renderPathologies();
+  }
+
+  function removeExercise(pathId, exercise) {
+    const assignments = getAssignments();
+    if (assignments[pathId]) {
+      assignments[pathId] = assignments[pathId].filter(ex => ex !== exercise);
+      saveAssignments(assignments);
+    }
+    renderPathologies();
+  }
+
+  // ── Logout ──
+  function handleLogout() {
+    localStorage.removeItem('pap_user');
+    window.location.href = 'login.html';
+  }
+
+  // ── Init ──
+  function init() {
+    if (user) {
+      document.getElementById('user-initial').textContent = user.username.charAt(0).toUpperCase();
+      document.getElementById('user-greeting').textContent = 'Welcome, ' + user.username;
+    }
+    renderPathologies();
+  }
+
+  init();
+</script>
+</body>
+</html>

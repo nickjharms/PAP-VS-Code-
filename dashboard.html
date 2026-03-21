@@ -134,11 +134,17 @@
   <div class="max-w-6xl mx-auto px-6">
     <div class="flex items-center justify-between h-[70px]">
       <!-- Logo -->
-      <a href="index.html" class="flex items-center gap-3 group">
-        <div class="w-9 h-9 rounded-xl flex items-center justify-center text-white font-bold text-base shadow-teal-sm"
-             style="background:linear-gradient(135deg,#0a8f8f,#1ab3b3)">✚</div>
-        <span class="text-white font-semibold text-lg tracking-snug">Professional Adherence Program</span>
-      </a>
+      <div class="flex items-center gap-8">
+        <a href="index.html" class="flex items-center gap-3 group">
+          <div class="w-9 h-9 rounded-xl flex items-center justify-center text-white font-bold text-base shadow-teal-sm"
+               style="background:linear-gradient(135deg,#0a8f8f,#1ab3b3)">✚</div>
+          <span class="text-white font-semibold text-lg tracking-snug hidden md:inline">Professional Adherence Program</span>
+        </a>
+        <nav class="hidden sm:flex items-center gap-6">
+          <a href="dashboard.html" class="text-white text-sm font-medium" style="transition:color 0.15s">Dashboard</a>
+          <a href="exercise-logbook.html" class="text-white/70 hover:text-white text-sm font-medium" style="transition:color 0.15s">Exercise Logbook</a>
+        </nav>
+      </div>
       <!-- Right: user greeting + logout -->
       <div class="flex items-center gap-4">
         <div class="flex items-center gap-3">
@@ -254,13 +260,21 @@
   <!-- Panel header -->
   <div class="sticky top-0 bg-white/90 border-b border-slate-100 px-7 py-5 flex items-center justify-between z-10"
        style="backdrop-filter:blur(8px)">
-    <h3 class="serif text-navy text-lg tracking-snug">Patient Details</h3>
-    <button onclick="closePatientDetail()"
-            class="w-8 h-8 rounded-lg flex items-center justify-center bg-slate-100 text-slate-500
-                   hover:bg-slate-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal-300
-                   text-sm" style="transition: background 0.15s">
-      ✕
-    </button>
+    <h3 class="serif text-navy text-lg tracking-snug" id="detail-title">Patient Details</h3>
+    <div class="flex items-center gap-2">
+      <button id="detail-edit-btn" onclick="editPatientDetail()"
+              class="px-3 py-1.5 rounded-lg text-xs font-semibold text-teal border border-teal/20 bg-teal-50
+                     hover:bg-teal-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal-300
+                     btn-press" style="transition: background 0.15s">
+        Edit
+      </button>
+      <button onclick="closePatientDetail()"
+              class="w-8 h-8 rounded-lg flex items-center justify-center bg-slate-100 text-slate-500
+                     hover:bg-slate-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal-300
+                     text-sm" style="transition: background 0.15s">
+        ✕
+      </button>
+    </div>
   </div>
   <!-- Body -->
   <div id="detail-body" class="p-7">
@@ -431,10 +445,17 @@
   }
 
   // ── Patient detail slide-out ──
+  let currentDetailIndex = -1;
+
   function showPatientDetail(index) {
+    currentDetailIndex = index;
     const patients = getPatients();
     const p = patients[index];
     if (!p) return;
+
+    // Show edit button, update title
+    document.getElementById('detail-edit-btn').style.display = '';
+    document.getElementById('detail-title').textContent = 'Patient Details';
 
     const body = document.getElementById('detail-body');
     const initial = p.name.charAt(0).toUpperCase();
@@ -490,12 +511,24 @@
         </div>
       </div>
 
-      <div class="flex gap-4">
+      <div class="flex gap-4 mb-8">
         <div class="w-9 h-9 rounded-lg flex items-center justify-center bg-teal-50 text-teal flex-shrink-0 text-base">📝</div>
         <div class="flex-1">
           <div class="text-xs font-bold uppercase tracking-widest text-slate-400 mb-1">Notes</div>
           <div class="font-medium text-navy text-sm leading-relaxed">${p.notes || 'No notes'}</div>
         </div>
+      </div>
+
+      <!-- Delete button -->
+      <div class="border-t border-slate-100 pt-6" id="delete-section">
+        <button onclick="confirmDeletePatient('${p.id}')"
+                class="w-full py-3 rounded-xl font-semibold text-sm border btn-press
+                       focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-300"
+                style="color:#dc2626;border-color:rgba(220,38,38,0.25);transition: background 0.15s"
+                onmouseover="this.style.background='rgba(220,38,38,0.05)'"
+                onmouseout="this.style.background=''">
+          Delete Patient
+        </button>
       </div>
     `;
 
@@ -504,7 +537,128 @@
     document.body.style.overflow = 'hidden';
   }
 
+  // ── Edit patient ──
+  function editPatientDetail() {
+    const patients = getPatients();
+    const p = patients[currentDetailIndex];
+    if (!p) return;
+
+    // Hide edit button, update title
+    document.getElementById('detail-edit-btn').style.display = 'none';
+    document.getElementById('detail-title').textContent = 'Edit Patient';
+
+    const body = document.getElementById('detail-body');
+    const pathologyOptions = ['', 'Chronic Disease Management', 'Mental Health & Behavioral', 'Oncology & Cancer Care', 'Post-Surgical Recovery', 'Senior & Geriatric Care', 'Respiratory & Pulmonary', 'Other'];
+    const optionsHtml = pathologyOptions.map(opt =>
+      `<option value="${opt}" ${p.pathology === opt ? 'selected' : ''}>${opt || 'Select condition area'}</option>`
+    ).join('');
+
+    body.innerHTML = `
+      <form onsubmit="handleEditPatient(event)">
+        <div class="mb-4">
+          <label class="block text-xs font-semibold mb-1.5" style="color:#0d1f3c">Full Name *</label>
+          <input type="text" id="edit-name" required value="${p.name}" class="dash-input" />
+        </div>
+        <div class="mb-4">
+          <label class="block text-xs font-semibold mb-1.5" style="color:#0d1f3c">Email Address</label>
+          <input type="email" id="edit-email" value="${p.email || ''}" class="dash-input" />
+        </div>
+        <div class="mb-4">
+          <label class="block text-xs font-semibold mb-1.5" style="color:#0d1f3c">Phone Number</label>
+          <input type="tel" id="edit-phone" value="${p.phone || ''}" class="dash-input" />
+        </div>
+        <div class="mb-4">
+          <label class="block text-xs font-semibold mb-1.5" style="color:#0d1f3c">Pathology</label>
+          <select id="edit-pathology" class="dash-input" style="appearance:none;
+                  background-image:url('data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%2212%22 height=%2212%22 viewBox=%220 0 12 12%22%3E%3Cpath d=%22M2 4l4 4 4-4%22 fill=%22none%22 stroke=%22%238ba5bc%22 stroke-width=%221.5%22 stroke-linecap=%22round%22 stroke-linejoin=%22round%22/%3E%3C/svg%3E');
+                  background-repeat:no-repeat;background-position:right 16px center;padding-right:40px">
+            ${optionsHtml}
+          </select>
+        </div>
+        <div class="mb-4">
+          <label class="block text-xs font-semibold mb-1.5" style="color:#0d1f3c">Notes</label>
+          <textarea id="edit-notes" rows="3" class="dash-input" style="resize:none">${p.notes || ''}</textarea>
+        </div>
+        <div class="mb-6">
+          <label class="block text-xs font-semibold mb-1.5" style="color:#0d1f3c">Scheduled Call Date & Time</label>
+          <input type="datetime-local" id="edit-scheduled" value="${p.scheduledDate || ''}" class="dash-input" />
+        </div>
+        <div class="flex gap-3">
+          <button type="button" onclick="showPatientDetail(currentDetailIndex)"
+                  class="flex-1 py-3.5 rounded-xl font-semibold text-sm text-slate-600
+                         border border-slate-200 hover:bg-slate-50 btn-press
+                         focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal-300"
+                  style="transition: background 0.15s">
+            Cancel
+          </button>
+          <button type="submit"
+                  class="flex-1 py-3.5 rounded-xl font-semibold text-sm text-white shadow-teal-sm btn-press
+                         focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal-300"
+                  style="background:linear-gradient(135deg,#0d1f3c,#0a8f8f);
+                         transition: opacity 0.15s, transform 0.15s">
+            Save Changes
+          </button>
+        </div>
+      </form>
+    `;
+  }
+
+  function handleEditPatient(e) {
+    e.preventDefault();
+    const patients = getPatients();
+    const p = patients[currentDetailIndex];
+    if (!p) return;
+
+    p.name = document.getElementById('edit-name').value.trim();
+    p.email = document.getElementById('edit-email').value.trim();
+    p.phone = document.getElementById('edit-phone').value.trim();
+    p.pathology = document.getElementById('edit-pathology').value;
+    p.notes = document.getElementById('edit-notes').value.trim();
+    p.scheduledDate = document.getElementById('edit-scheduled').value;
+
+    savePatients(patients);
+    renderPatientList(document.getElementById('patient-search').value);
+    renderTodaysCalls();
+    showPatientDetail(currentDetailIndex);
+  }
+
+  // ── Delete patient ──
+  function confirmDeletePatient(patientId) {
+    const section = document.getElementById('delete-section');
+    section.innerHTML = `
+      <div class="text-center">
+        <div class="font-semibold text-navy text-sm mb-1">Remove this patient?</div>
+        <div class="text-slate-400 text-xs mb-4">This action cannot be undone.</div>
+        <div class="flex gap-3">
+          <button onclick="showPatientDetail(currentDetailIndex)"
+                  class="flex-1 py-2.5 rounded-xl font-semibold text-sm text-slate-600
+                         border border-slate-200 hover:bg-slate-50 btn-press
+                         focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal-300"
+                  style="transition: background 0.15s">
+            Cancel
+          </button>
+          <button onclick="deletePatient('${patientId}')"
+                  class="flex-1 py-2.5 rounded-xl font-semibold text-sm text-white btn-press
+                         focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-300"
+                  style="background:linear-gradient(135deg,#dc2626,#fb7185);transition: opacity 0.15s">
+            Confirm Delete
+          </button>
+        </div>
+      </div>
+    `;
+  }
+
+  function deletePatient(patientId) {
+    let patients = getPatients();
+    patients = patients.filter(p => p.id !== patientId);
+    savePatients(patients);
+    closePatientDetail();
+    renderPatientList(document.getElementById('patient-search').value);
+    renderTodaysCalls();
+  }
+
   function closePatientDetail() {
+    currentDetailIndex = -1;
     document.getElementById('detail-panel').classList.remove('open');
     document.getElementById('detail-backdrop').classList.add('hidden');
     document.body.style.overflow = '';
@@ -563,33 +717,11 @@
   }
 
   // ── Today's calls ──
-  function renderTodaysCalls() {
-    const patients = getPatients();
-    const today = new Date().toISOString().slice(0, 10);
-    const calls = patients
-      .filter(p => p.scheduledDate && p.scheduledDate.startsWith(today))
-      .sort((a, b) => a.scheduledDate.localeCompare(b.scheduledDate));
-
-    document.getElementById('calls-count').textContent = calls.length;
-
-    // Set today's date display
-    const todayDisplay = new Date().toLocaleDateString('en-US', { weekday:'long', month:'short', day:'numeric' });
-    document.getElementById('today-date').textContent = todayDisplay;
-
-    const container = document.getElementById('calls-container');
-
-    if (calls.length === 0) {
-      container.innerHTML = `
-        <div class="text-center py-12">
-          <div class="text-4xl mb-4">📋</div>
-          <div class="font-semibold text-navy mb-1">No calls scheduled today</div>
-          <div class="text-slate-400 text-sm">Add patients with scheduled dates to see them here.</div>
-        </div>`;
-      return;
-    }
-
-    container.innerHTML = `
-      <table class="w-full">
+  function renderCallsTable(calls, muted) {
+    if (calls.length === 0) return '';
+    const opacityClass = muted ? 'opacity-50' : '';
+    return `
+      <table class="w-full ${opacityClass}">
         <thead>
           <tr class="border-b border-slate-100">
             <th class="text-left text-xs font-bold uppercase tracking-widest text-slate-400 pb-3 pr-4">Patient Name</th>
@@ -620,6 +752,68 @@
           }).join('')}
         </tbody>
       </table>`;
+  }
+
+  function renderTodaysCalls() {
+    const patients = getPatients();
+    const now = new Date();
+    const today = now.toISOString().slice(0, 10);
+    const calls = patients
+      .filter(p => p.scheduledDate && p.scheduledDate.startsWith(today))
+      .sort((a, b) => a.scheduledDate.localeCompare(b.scheduledDate));
+
+    const upcoming = calls.filter(p => new Date(p.scheduledDate) > now);
+    const completed = calls.filter(p => new Date(p.scheduledDate) <= now);
+
+    document.getElementById('calls-count').textContent = calls.length;
+
+    const todayDisplay = now.toLocaleDateString('en-US', { weekday:'long', month:'short', day:'numeric' });
+    document.getElementById('today-date').textContent = todayDisplay;
+
+    const container = document.getElementById('calls-container');
+
+    if (calls.length === 0) {
+      container.innerHTML = `
+        <div class="text-center py-12">
+          <div class="text-4xl mb-4">📋</div>
+          <div class="font-semibold text-navy mb-1">No calls scheduled today</div>
+          <div class="text-slate-400 text-sm">Add patients with scheduled dates to see them here.</div>
+        </div>`;
+      return;
+    }
+
+    let html = '';
+
+    // Upcoming section
+    html += `
+      <div class="flex items-center gap-2 mb-3">
+        <div class="w-2 h-2 rounded-full" style="background:#0a8f8f"></div>
+        <span class="text-xs font-bold uppercase tracking-widest text-teal">Upcoming</span>
+        <span class="text-xs text-slate-400">&mdash; ${upcoming.length} call${upcoming.length !== 1 ? 's' : ''}</span>
+      </div>`;
+    if (upcoming.length > 0) {
+      html += renderCallsTable(upcoming, false);
+    } else {
+      html += `<div class="text-slate-400 text-xs mb-2 pl-4">No upcoming calls remaining.</div>`;
+    }
+
+    // Divider
+    html += `<div class="border-t border-slate-200 my-5"></div>`;
+
+    // Completed section
+    html += `
+      <div class="flex items-center gap-2 mb-3">
+        <div class="w-2 h-2 rounded-full bg-slate-300"></div>
+        <span class="text-xs font-bold uppercase tracking-widest text-slate-400">Completed</span>
+        <span class="text-xs text-slate-400">&mdash; ${completed.length} call${completed.length !== 1 ? 's' : ''}</span>
+      </div>`;
+    if (completed.length > 0) {
+      html += renderCallsTable(completed, true);
+    } else {
+      html += `<div class="text-slate-400 text-xs pl-4">No completed calls yet.</div>`;
+    }
+
+    container.innerHTML = html;
   }
 
   // ── Logout ──
