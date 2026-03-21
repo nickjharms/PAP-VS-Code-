@@ -19,8 +19,9 @@ const MIME = {
 };
 
 const server = http.createServer((req, res) => {
-  let urlPath = req.url === '/' ? '/index.html' : req.url;
-  const filePath = path.join(__dirname, urlPath);
+  const parsedUrl = new URL(req.url, `http://localhost:${PORT}`);
+  let urlPath = parsedUrl.pathname === '/' ? '/index.html' : parsedUrl.pathname;
+  const filePath = path.join(__dirname, decodeURIComponent(urlPath));
 
   fs.readFile(filePath, (err, data) => {
     if (err) {
