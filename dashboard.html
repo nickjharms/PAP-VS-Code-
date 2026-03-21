@@ -1,0 +1,648 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Dashboard — Professional Adherence Program</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            navy:  { DEFAULT: '#0d1f3c', 50: '#e8edf5', 100: '#c5d0e6', 200: '#8fa5cc', 300: '#5a79b3', 400: '#2e5299', 500: '#0d1f3c' },
+            teal:  { DEFAULT: '#0a8f8f', 50: '#e0f5f5', 100: '#b3e6e6', 200: '#66cccc', 300: '#1ab3b3', 400: '#0a8f8f', 500: '#076e6e' },
+            slate: { 50: '#f8fafb', 100: '#f0f4f8', 200: '#dce5ee', 300: '#b8c9d9', 400: '#8ba5bc', 500: '#5f8099', 600: '#3d607d', 700: '#24455e', 800: '#132d42', 900: '#08182a' },
+          },
+          fontFamily: {
+            serif: ['"DM Serif Display"', 'Georgia', 'serif'],
+            sans:  ['Inter', 'system-ui', 'sans-serif'],
+          },
+          letterSpacing: { tight: '-0.03em', snug: '-0.015em' },
+          lineHeight: { body: '1.75' },
+          boxShadow: {
+            'card':    '0 2px 8px rgba(13,31,60,0.06), 0 8px 32px rgba(13,31,60,0.08)',
+            'card-lg': '0 4px 16px rgba(13,31,60,0.08), 0 16px 48px rgba(13,31,60,0.12)',
+            'teal':    '0 8px 24px rgba(10,143,143,0.30)',
+            'teal-sm': '0 4px 12px rgba(10,143,143,0.22)',
+            'navy':    '0 8px 24px rgba(13,31,60,0.32)',
+          },
+        }
+      }
+    }
+  </script>
+
+  <style>
+    .grain::after {
+      content: '';
+      position: absolute; inset: 0; pointer-events: none; z-index: 0;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='300' height='300'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.75' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='300' height='300' filter='url(%23n)' opacity='0.04'/%3E%3C/svg%3E");
+      background-repeat: repeat;
+    }
+    body { font-family: 'Inter', sans-serif; color: #132d42; }
+    h1,h2,h3,.serif { font-family: 'DM Serif Display', serif; }
+    .tracking-tight { letter-spacing: -0.03em; }
+    .tracking-snug  { letter-spacing: -0.015em; }
+
+    .hero-bg {
+      background:
+        radial-gradient(ellipse 80% 60% at 70% 40%, rgba(10,143,143,0.22) 0%, transparent 70%),
+        radial-gradient(ellipse 60% 80% at 20% 70%, rgba(30,80,160,0.18) 0%, transparent 65%),
+        radial-gradient(ellipse 100% 100% at 50% 0%, rgba(13,31,60,1) 0%, #0d1f3c 100%);
+    }
+
+    .btn-press:active { transform: scale(0.97); }
+
+    /* Scrollbar */
+    ::-webkit-scrollbar { width: 6px; }
+    ::-webkit-scrollbar-track { background: #f0f4f8; }
+    ::-webkit-scrollbar-thumb { background: #8ba5bc; border-radius: 3px; }
+
+    /* Modal backdrop */
+    .modal-backdrop {
+      background: rgba(13, 31, 60, 0.6);
+      backdrop-filter: blur(6px);
+    }
+
+    /* Modal animation */
+    .modal-content {
+      opacity: 0;
+      transform: translateY(20px) scale(0.97);
+      transition: opacity 0.3s cubic-bezier(0.22,1,0.36,1),
+                  transform 0.3s cubic-bezier(0.22,1,0.36,1);
+    }
+    .modal-content.visible {
+      opacity: 1;
+      transform: translateY(0) scale(1);
+    }
+
+    /* Slide panel */
+    .slide-panel {
+      transform: translateX(100%);
+      transition: transform 0.35s cubic-bezier(0.22,1,0.36,1);
+    }
+    .slide-panel.open {
+      transform: translateX(0);
+    }
+
+    /* Patient row hover */
+    .patient-row {
+      transition: transform 0.2s cubic-bezier(0.22,1,0.36,1),
+                  box-shadow 0.2s cubic-bezier(0.22,1,0.36,1);
+    }
+    .patient-row:hover {
+      transform: translateX(4px);
+    }
+
+    /* Table row hover */
+    .table-row:hover {
+      background: rgba(10, 143, 143, 0.04);
+    }
+
+    /* Input field */
+    .dash-input {
+      width: 100%;
+      padding: 12px 16px;
+      border-radius: 12px;
+      border: 1.5px solid #dce5ee;
+      background: #fff;
+      font-size: 14px;
+      font-family: 'Inter', sans-serif;
+      color: #132d42;
+      outline: none;
+      transition: border-color 0.15s, box-shadow 0.15s;
+    }
+    .dash-input:focus {
+      border-color: #0a8f8f;
+      box-shadow: 0 0 0 3px rgba(10,143,143,0.12);
+    }
+    .dash-input::placeholder { color: #8ba5bc; }
+  </style>
+</head>
+<body class="antialiased" style="background:#f8fafb">
+
+<!-- ═══════════════════════════════════════════════════════
+     NAVBAR
+═══════════════════════════════════════════════════════ -->
+<nav class="fixed top-0 inset-x-0 z-50"
+     style="background:rgba(13,31,60,0.92);backdrop-filter:blur(14px);
+            border-bottom:1px solid rgba(255,255,255,0.08);
+            box-shadow:0 4px 24px rgba(13,31,60,0.3)">
+  <div class="max-w-6xl mx-auto px-6">
+    <div class="flex items-center justify-between h-[70px]">
+      <!-- Logo -->
+      <a href="index.html" class="flex items-center gap-3 group">
+        <div class="w-9 h-9 rounded-xl flex items-center justify-center text-white font-bold text-base shadow-teal-sm"
+             style="background:linear-gradient(135deg,#0a8f8f,#1ab3b3)">✚</div>
+        <span class="text-white font-semibold text-lg tracking-snug">Professional Adherence Program</span>
+      </a>
+      <!-- Right: user greeting + logout -->
+      <div class="flex items-center gap-4">
+        <div class="flex items-center gap-3">
+          <div class="w-8 h-8 rounded-full flex items-center justify-center text-white text-xs font-bold"
+               style="background:linear-gradient(135deg,#0a8f8f,#1ab3b3)"
+               id="user-initial">N</div>
+          <span class="text-white/80 text-sm font-medium hidden sm:inline" id="user-greeting">Welcome, Nickj</span>
+        </div>
+        <button onclick="handleLogout()"
+                class="inline-flex items-center gap-2 px-4 py-2 rounded-full text-sm font-semibold
+                       text-white/70 border border-white/20
+                       hover:bg-white/10 hover:text-white
+                       focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal-300
+                       btn-press"
+                style="transition: color 0.15s, background 0.15s">
+          Log Out
+        </button>
+      </div>
+    </div>
+  </div>
+</nav>
+
+<!-- ═══════════════════════════════════════════════════════
+     WELCOME HEADER
+═══════════════════════════════════════════════════════ -->
+<section class="hero-bg grain relative overflow-hidden pt-24 pb-10">
+  <div class="relative z-10 max-w-6xl mx-auto px-6">
+    <h1 class="serif text-white tracking-tight leading-[1.15] mb-2"
+        style="font-size:clamp(24px,3vw,36px)">
+      Dashboard
+    </h1>
+    <p class="text-white/55 text-sm">Manage your patient catalog and today's scheduled calls.</p>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════════════════
+     MAIN CONTENT — TWO-COLUMN GRID
+═══════════════════════════════════════════════════════ -->
+<main class="py-10" style="background:#f8fafb">
+  <div class="max-w-6xl mx-auto px-6">
+    <div class="grid lg:grid-cols-2 gap-8">
+
+      <!-- ─── PANEL A: PATIENT CATALOG ─── -->
+      <div class="bg-white rounded-2xl shadow-card overflow-hidden relative">
+        <!-- Top accent bar -->
+        <div class="absolute top-0 left-0 right-0 h-[3px]"
+             style="background:linear-gradient(90deg,#0a8f8f,#1ab3b3)"></div>
+
+        <!-- Card header -->
+        <div class="p-7 pb-0 flex items-center justify-between">
+          <div>
+            <h2 class="serif text-navy text-xl tracking-snug">Patient Catalog</h2>
+            <p class="text-slate-500 text-sm mt-1"><span id="patient-count">0</span> patients enrolled</p>
+          </div>
+          <button onclick="openAddPatientModal()"
+                  class="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-semibold
+                         text-white shadow-teal-sm btn-press
+                         hover:shadow-teal focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal-300"
+                  style="background:linear-gradient(135deg,#0a8f8f,#1ab3b3);
+                         transition: box-shadow 0.2s cubic-bezier(0.22,1,0.36,1), transform 0.2s cubic-bezier(0.22,1,0.36,1)">
+            + Add Patient
+          </button>
+        </div>
+
+        <!-- Search -->
+        <div class="px-7 pt-5">
+          <input type="text" id="patient-search" placeholder="Search patients..."
+                 class="dash-input" oninput="filterPatients(this.value)" />
+        </div>
+
+        <!-- Patient list -->
+        <div class="p-7 pt-4 max-h-[480px] overflow-y-auto" id="patient-list">
+          <!-- Populated by JS -->
+        </div>
+      </div>
+
+      <!-- ─── PANEL B: TODAY'S CALLS ─── -->
+      <div class="bg-white rounded-2xl shadow-card overflow-hidden relative">
+        <!-- Top accent bar -->
+        <div class="absolute top-0 left-0 right-0 h-[3px]"
+             style="background:linear-gradient(90deg,#0d1f3c,#2e5299)"></div>
+
+        <!-- Card header -->
+        <div class="p-7 pb-0">
+          <div class="flex items-center justify-between">
+            <div>
+              <h2 class="serif text-navy text-xl tracking-snug">Today's Calls</h2>
+              <p class="text-slate-500 text-sm mt-1">
+                <span id="today-date"></span> &mdash; <span id="calls-count">0</span> scheduled
+              </p>
+            </div>
+            <div class="w-10 h-10 rounded-xl flex items-center justify-center bg-navy-50 text-navy text-lg">
+              📞
+            </div>
+          </div>
+        </div>
+
+        <!-- Table -->
+        <div class="p-7 pt-5 max-h-[480px] overflow-y-auto" id="calls-container">
+          <!-- Populated by JS -->
+        </div>
+      </div>
+
+    </div>
+  </div>
+</main>
+
+<!-- ═══════════════════════════════════════════════════════
+     PATIENT DETAIL SLIDE-OUT PANEL
+═══════════════════════════════════════════════════════ -->
+<div id="detail-backdrop" class="fixed inset-0 z-40 modal-backdrop hidden" onclick="closePatientDetail()"></div>
+<div id="detail-panel" class="slide-panel fixed top-0 right-0 bottom-0 w-full max-w-[480px] z-50 bg-white shadow-card-lg overflow-y-auto">
+  <!-- Panel header -->
+  <div class="sticky top-0 bg-white/90 border-b border-slate-100 px-7 py-5 flex items-center justify-between z-10"
+       style="backdrop-filter:blur(8px)">
+    <h3 class="serif text-navy text-lg tracking-snug">Patient Details</h3>
+    <button onclick="closePatientDetail()"
+            class="w-8 h-8 rounded-lg flex items-center justify-center bg-slate-100 text-slate-500
+                   hover:bg-slate-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal-300
+                   text-sm" style="transition: background 0.15s">
+      ✕
+    </button>
+  </div>
+  <!-- Body -->
+  <div id="detail-body" class="p-7">
+    <!-- Populated by JS -->
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════
+     ADD NEW PATIENT MODAL
+═══════════════════════════════════════════════════════ -->
+<div id="modal-backdrop" class="fixed inset-0 z-40 modal-backdrop hidden" onclick="closeAddPatientModal()"></div>
+<div id="add-patient-modal" class="fixed inset-0 z-50 flex items-center justify-center p-6 pointer-events-none hidden">
+  <div class="modal-content bg-white rounded-2xl shadow-card-lg w-full max-w-[520px] max-h-[90vh] overflow-y-auto pointer-events-auto">
+
+    <!-- Modal header -->
+    <div class="px-7 pt-7 pb-0 flex items-center justify-between">
+      <h3 class="serif text-navy text-xl tracking-snug">Add New Patient</h3>
+      <button onclick="closeAddPatientModal()"
+              class="w-8 h-8 rounded-lg flex items-center justify-center bg-slate-100 text-slate-500
+                     hover:bg-slate-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal-300
+                     text-sm" style="transition: background 0.15s">
+        ✕
+      </button>
+    </div>
+
+    <!-- Form -->
+    <form onsubmit="handleAddPatient(event)" class="p-7">
+      <!-- Name -->
+      <div class="mb-4">
+        <label class="block text-xs font-semibold mb-1.5" style="color:#0d1f3c">Full Name *</label>
+        <input type="text" id="new-name" required placeholder="Jane Smith" class="dash-input" />
+      </div>
+      <!-- Email -->
+      <div class="mb-4">
+        <label class="block text-xs font-semibold mb-1.5" style="color:#0d1f3c">Email Address</label>
+        <input type="email" id="new-email" placeholder="jane@email.com" class="dash-input" />
+      </div>
+      <!-- Phone -->
+      <div class="mb-4">
+        <label class="block text-xs font-semibold mb-1.5" style="color:#0d1f3c">Phone Number</label>
+        <input type="tel" id="new-phone" placeholder="(555) 123-4567" class="dash-input" />
+      </div>
+      <!-- Pathology -->
+      <div class="mb-4">
+        <label class="block text-xs font-semibold mb-1.5" style="color:#0d1f3c">Pathology</label>
+        <select id="new-pathology" class="dash-input" style="appearance:none;
+                background-image:url('data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%2212%22 height=%2212%22 viewBox=%220 0 12 12%22%3E%3Cpath d=%22M2 4l4 4 4-4%22 fill=%22none%22 stroke=%22%238ba5bc%22 stroke-width=%221.5%22 stroke-linecap=%22round%22 stroke-linejoin=%22round%22/%3E%3C/svg%3E');
+                background-repeat:no-repeat;background-position:right 16px center;padding-right:40px">
+          <option value="">Select condition area</option>
+          <option>Chronic Disease Management</option>
+          <option>Mental Health & Behavioral</option>
+          <option>Oncology & Cancer Care</option>
+          <option>Post-Surgical Recovery</option>
+          <option>Senior & Geriatric Care</option>
+          <option>Respiratory & Pulmonary</option>
+          <option>Other</option>
+        </select>
+      </div>
+      <!-- Notes -->
+      <div class="mb-4">
+        <label class="block text-xs font-semibold mb-1.5" style="color:#0d1f3c">Notes</label>
+        <textarea id="new-notes" rows="3" placeholder="Additional notes about this patient..." class="dash-input" style="resize:none"></textarea>
+      </div>
+      <!-- Scheduled Date/Time -->
+      <div class="mb-6">
+        <label class="block text-xs font-semibold mb-1.5" style="color:#0d1f3c">Scheduled Call Date & Time</label>
+        <input type="datetime-local" id="new-scheduled" class="dash-input" />
+      </div>
+      <!-- Action buttons -->
+      <div class="flex gap-3">
+        <button type="button" onclick="closeAddPatientModal()"
+                class="flex-1 py-3.5 rounded-xl font-semibold text-sm text-slate-600
+                       border border-slate-200 hover:bg-slate-50 btn-press
+                       focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal-300"
+                style="transition: background 0.15s">
+          Cancel
+        </button>
+        <button type="submit"
+                class="flex-1 py-3.5 rounded-xl font-semibold text-sm text-white shadow-teal-sm btn-press
+                       focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal-300"
+                style="background:linear-gradient(135deg,#0d1f3c,#0a8f8f);
+                       transition: opacity 0.15s, transform 0.15s">
+          Save Patient
+        </button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════
+     JAVASCRIPT
+═══════════════════════════════════════════════════════ -->
+<script>
+  // ── Auth guard ──
+  const user = JSON.parse(localStorage.getItem('pap_user') || 'null');
+  if (!user) { window.location.href = 'login.html'; }
+
+  // ── Data helpers ──
+  function getPatients() {
+    return JSON.parse(localStorage.getItem('pap_patients') || '[]');
+  }
+  function savePatients(patients) {
+    localStorage.setItem('pap_patients', JSON.stringify(patients));
+  }
+
+  function seedPatientData() {
+    const today = new Date();
+    const todayStr = today.toISOString().slice(0, 10);
+    const tomorrow = new Date(today);
+    tomorrow.setDate(tomorrow.getDate() + 1);
+    const tomorrowStr = tomorrow.toISOString().slice(0, 10);
+
+    const patients = [
+      { id:'pat_seed_1', name:'Maria Garcia', email:'maria.garcia@email.com', phone:'(555) 234-5678', pathology:'Chronic Disease Management', notes:'Diabetes Type 2, currently on metformin. Weekly check-in calls preferred.', scheduledDate: todayStr+'T10:00', createdAt: new Date().toISOString() },
+      { id:'pat_seed_2', name:'James Wilson', email:'james.w@email.com', phone:'(555) 345-6789', pathology:'Post-Surgical Recovery', notes:'Knee replacement 2 weeks ago. Physical therapy adherence tracking.', scheduledDate: todayStr+'T14:30', createdAt: new Date().toISOString() },
+      { id:'pat_seed_3', name:'Sarah Chen', email:'sarah.chen@email.com', phone:'(555) 456-7890', pathology:'Mental Health & Behavioral', notes:'Anxiety management program. Prefers afternoon calls.', scheduledDate: todayStr+'T16:00', createdAt: new Date().toISOString() },
+      { id:'pat_seed_4', name:'Robert Johnson', email:'r.johnson@email.com', phone:'(555) 567-8901', pathology:'Respiratory & Pulmonary', notes:'COPD management. Inhaler technique follow-up needed.', scheduledDate: tomorrowStr+'T09:00', createdAt: new Date().toISOString() },
+      { id:'pat_seed_5', name:'Linda Thompson', email:'linda.t@email.com', phone:'(555) 678-9012', pathology:'Senior & Geriatric Care', notes:'Multiple medications. Caregiver (daughter) involved in calls.', scheduledDate: tomorrowStr+'T11:00', createdAt: new Date().toISOString() }
+    ];
+    savePatients(patients);
+  }
+
+  // ── Render patient list ──
+  let allPatients = [];
+
+  function renderPatientList(filter = '') {
+    allPatients = getPatients();
+    const query = filter.toLowerCase();
+    const filtered = query
+      ? allPatients.filter(p => p.name.toLowerCase().includes(query) || (p.pathology && p.pathology.toLowerCase().includes(query)))
+      : allPatients;
+
+    document.getElementById('patient-count').textContent = allPatients.length;
+
+    const container = document.getElementById('patient-list');
+    if (filtered.length === 0) {
+      container.innerHTML = `
+        <div class="text-center py-12">
+          <div class="text-4xl mb-4">👤</div>
+          <div class="font-semibold text-navy mb-1">${query ? 'No patients match your search' : 'No patients yet'}</div>
+          <div class="text-slate-400 text-sm">${query ? 'Try a different search term.' : 'Click "Add Patient" to get started.'}</div>
+        </div>`;
+      return;
+    }
+
+    container.innerHTML = filtered.map((p, i) => {
+      const realIndex = allPatients.indexOf(p);
+      const initial = p.name.charAt(0).toUpperCase();
+      return `
+        <button onclick="showPatientDetail(${realIndex})"
+                class="patient-row w-full text-left flex items-center gap-4 p-4 rounded-xl
+                       border border-slate-100 mb-2 cursor-pointer
+                       hover:shadow-card focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal-300
+                       active:scale-[0.98]">
+          <div class="w-10 h-10 rounded-full flex items-center justify-center text-white text-sm font-bold flex-shrink-0"
+               style="background:linear-gradient(135deg,#0d1f3c,#0a8f8f)">${initial}</div>
+          <div class="flex-1 min-w-0">
+            <div class="font-semibold text-navy text-sm truncate">${p.name}</div>
+            <div class="text-slate-400 text-xs truncate">${p.pathology || 'No pathology'}</div>
+          </div>
+          <span class="text-slate-300 text-sm flex-shrink-0">&#8250;</span>
+        </button>`;
+    }).join('');
+  }
+
+  function filterPatients(query) {
+    renderPatientList(query);
+  }
+
+  // ── Patient detail slide-out ──
+  function showPatientDetail(index) {
+    const patients = getPatients();
+    const p = patients[index];
+    if (!p) return;
+
+    const body = document.getElementById('detail-body');
+    const initial = p.name.charAt(0).toUpperCase();
+
+    let scheduledDisplay = 'Not scheduled';
+    if (p.scheduledDate) {
+      const d = new Date(p.scheduledDate);
+      scheduledDisplay = d.toLocaleDateString('en-US', { weekday:'short', month:'short', day:'numeric', year:'numeric' })
+        + ' at ' + d.toLocaleTimeString('en-US', { hour:'numeric', minute:'2-digit' });
+    }
+
+    body.innerHTML = `
+      <!-- Patient avatar + name -->
+      <div class="flex items-center gap-4 mb-8">
+        <div class="w-14 h-14 rounded-full flex items-center justify-center text-white text-xl font-bold flex-shrink-0"
+             style="background:linear-gradient(135deg,#0d1f3c,#0a8f8f)">${initial}</div>
+        <div>
+          <div class="font-bold text-navy text-lg">${p.name}</div>
+          <div class="text-slate-400 text-sm">${p.pathology || 'No pathology assigned'}</div>
+        </div>
+      </div>
+
+      <!-- Info rows -->
+      <div class="flex gap-4 mb-5">
+        <div class="w-9 h-9 rounded-lg flex items-center justify-center bg-teal-50 text-teal flex-shrink-0 text-base">📧</div>
+        <div>
+          <div class="text-xs font-bold uppercase tracking-widest text-slate-400 mb-1">Email</div>
+          <div class="font-medium text-navy text-sm">${p.email || 'Not provided'}</div>
+        </div>
+      </div>
+
+      <div class="flex gap-4 mb-5">
+        <div class="w-9 h-9 rounded-lg flex items-center justify-center bg-teal-50 text-teal flex-shrink-0 text-base">📱</div>
+        <div>
+          <div class="text-xs font-bold uppercase tracking-widest text-slate-400 mb-1">Phone</div>
+          <div class="font-medium text-navy text-sm">${p.phone || 'Not provided'}</div>
+        </div>
+      </div>
+
+      <div class="flex gap-4 mb-5">
+        <div class="w-9 h-9 rounded-lg flex items-center justify-center bg-teal-50 text-teal flex-shrink-0 text-base">🩺</div>
+        <div>
+          <div class="text-xs font-bold uppercase tracking-widest text-slate-400 mb-1">Pathology</div>
+          <div class="font-medium text-navy text-sm">${p.pathology || 'Not assigned'}</div>
+        </div>
+      </div>
+
+      <div class="flex gap-4 mb-5">
+        <div class="w-9 h-9 rounded-lg flex items-center justify-center bg-teal-50 text-teal flex-shrink-0 text-base">📅</div>
+        <div>
+          <div class="text-xs font-bold uppercase tracking-widest text-slate-400 mb-1">Scheduled Call</div>
+          <div class="font-medium text-navy text-sm">${scheduledDisplay}</div>
+        </div>
+      </div>
+
+      <div class="flex gap-4">
+        <div class="w-9 h-9 rounded-lg flex items-center justify-center bg-teal-50 text-teal flex-shrink-0 text-base">📝</div>
+        <div class="flex-1">
+          <div class="text-xs font-bold uppercase tracking-widest text-slate-400 mb-1">Notes</div>
+          <div class="font-medium text-navy text-sm leading-relaxed">${p.notes || 'No notes'}</div>
+        </div>
+      </div>
+    `;
+
+    document.getElementById('detail-backdrop').classList.remove('hidden');
+    document.getElementById('detail-panel').classList.add('open');
+    document.body.style.overflow = 'hidden';
+  }
+
+  function closePatientDetail() {
+    document.getElementById('detail-panel').classList.remove('open');
+    document.getElementById('detail-backdrop').classList.add('hidden');
+    document.body.style.overflow = '';
+  }
+
+  // ── Add patient modal ──
+  function openAddPatientModal() {
+    document.getElementById('modal-backdrop').classList.remove('hidden');
+    document.getElementById('add-patient-modal').classList.remove('hidden');
+    document.body.style.overflow = 'hidden';
+    requestAnimationFrame(() => {
+      document.querySelector('.modal-content').classList.add('visible');
+    });
+  }
+
+  function closeAddPatientModal() {
+    const modal = document.querySelector('.modal-content');
+    modal.classList.remove('visible');
+    setTimeout(() => {
+      document.getElementById('modal-backdrop').classList.add('hidden');
+      document.getElementById('add-patient-modal').classList.add('hidden');
+      document.body.style.overflow = '';
+      // Reset form
+      document.getElementById('new-name').value = '';
+      document.getElementById('new-email').value = '';
+      document.getElementById('new-phone').value = '';
+      document.getElementById('new-pathology').value = '';
+      document.getElementById('new-notes').value = '';
+      document.getElementById('new-scheduled').value = '';
+    }, 300);
+  }
+
+  function handleAddPatient(e) {
+    e.preventDefault();
+    const name = document.getElementById('new-name').value.trim();
+    if (!name) return;
+
+    const patient = {
+      id: 'pat_' + Date.now(),
+      name: name,
+      email: document.getElementById('new-email').value.trim(),
+      phone: document.getElementById('new-phone').value.trim(),
+      pathology: document.getElementById('new-pathology').value,
+      notes: document.getElementById('new-notes').value.trim(),
+      scheduledDate: document.getElementById('new-scheduled').value,
+      createdAt: new Date().toISOString()
+    };
+
+    const patients = getPatients();
+    patients.push(patient);
+    savePatients(patients);
+
+    renderPatientList(document.getElementById('patient-search').value);
+    renderTodaysCalls();
+    closeAddPatientModal();
+  }
+
+  // ── Today's calls ──
+  function renderTodaysCalls() {
+    const patients = getPatients();
+    const today = new Date().toISOString().slice(0, 10);
+    const calls = patients
+      .filter(p => p.scheduledDate && p.scheduledDate.startsWith(today))
+      .sort((a, b) => a.scheduledDate.localeCompare(b.scheduledDate));
+
+    document.getElementById('calls-count').textContent = calls.length;
+
+    // Set today's date display
+    const todayDisplay = new Date().toLocaleDateString('en-US', { weekday:'long', month:'short', day:'numeric' });
+    document.getElementById('today-date').textContent = todayDisplay;
+
+    const container = document.getElementById('calls-container');
+
+    if (calls.length === 0) {
+      container.innerHTML = `
+        <div class="text-center py-12">
+          <div class="text-4xl mb-4">📋</div>
+          <div class="font-semibold text-navy mb-1">No calls scheduled today</div>
+          <div class="text-slate-400 text-sm">Add patients with scheduled dates to see them here.</div>
+        </div>`;
+      return;
+    }
+
+    container.innerHTML = `
+      <table class="w-full">
+        <thead>
+          <tr class="border-b border-slate-100">
+            <th class="text-left text-xs font-bold uppercase tracking-widest text-slate-400 pb-3 pr-4">Patient Name</th>
+            <th class="text-left text-xs font-bold uppercase tracking-widest text-slate-400 pb-3 pr-4">Scheduled Time</th>
+            <th class="text-left text-xs font-bold uppercase tracking-widest text-slate-400 pb-3">Phone Number</th>
+          </tr>
+        </thead>
+        <tbody>
+          ${calls.map(p => {
+            const initial = p.name.charAt(0).toUpperCase();
+            const time = new Date(p.scheduledDate).toLocaleTimeString('en-US', { hour:'numeric', minute:'2-digit' });
+            return `
+              <tr class="table-row border-b border-slate-50">
+                <td class="py-4 pr-4">
+                  <div class="flex items-center gap-3">
+                    <div class="w-8 h-8 rounded-full flex items-center justify-center text-white text-xs font-bold flex-shrink-0"
+                         style="background:linear-gradient(135deg,#0d1f3c,#0a8f8f)">${initial}</div>
+                    <span class="font-medium text-navy text-sm">${p.name}</span>
+                  </div>
+                </td>
+                <td class="py-4 pr-4">
+                  <span class="text-sm text-slate-600 font-medium">${time}</span>
+                </td>
+                <td class="py-4">
+                  <span class="text-sm text-slate-500">${p.phone || '—'}</span>
+                </td>
+              </tr>`;
+          }).join('')}
+        </tbody>
+      </table>`;
+  }
+
+  // ── Logout ──
+  function handleLogout() {
+    localStorage.removeItem('pap_user');
+    window.location.href = 'login.html';
+  }
+
+  // ── Init ──
+  function init() {
+    if (user) {
+      const initial = user.username.charAt(0).toUpperCase();
+      document.getElementById('user-initial').textContent = initial;
+      document.getElementById('user-greeting').textContent = 'Welcome, ' + user.username;
+    }
+    if (!localStorage.getItem('pap_patients')) {
+      seedPatientData();
+    }
+    renderPatientList();
+    renderTodaysCalls();
+  }
+
+  init();
+</script>
+</body>
+</html>

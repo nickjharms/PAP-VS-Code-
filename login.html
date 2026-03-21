@@ -1,0 +1,268 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Log In — Professional Adherence Program</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            navy: { DEFAULT: '#0d1f3c' },
+            teal: { DEFAULT: '#0a8f8f', 300: '#1ab3b3', 50: '#e0f5f5' },
+          },
+          fontFamily: {
+            serif: ['"DM Serif Display"', 'Georgia', 'serif'],
+            sans:  ['Inter', 'system-ui', 'sans-serif'],
+          },
+          boxShadow: {
+            'teal':    '0 8px 24px rgba(10,143,143,0.30)',
+            'teal-sm': '0 4px 12px rgba(10,143,143,0.22)',
+            'card':    '0 2px 8px rgba(13,31,60,0.06), 0 8px 32px rgba(13,31,60,0.08)',
+          },
+        }
+      }
+    }
+  </script>
+
+  <style>
+    body { font-family: 'Inter', sans-serif; }
+    h1, h2, .serif { font-family: 'DM Serif Display', serif; }
+
+    .bg-split {
+      background:
+        radial-gradient(ellipse 80% 70% at 30% 50%, rgba(10,143,143,0.18) 0%, transparent 65%),
+        radial-gradient(ellipse 60% 80% at 80% 20%, rgba(30,80,160,0.15) 0%, transparent 60%),
+        #0d1f3c;
+    }
+
+    .grain::after {
+      content: '';
+      position: absolute; inset: 0; pointer-events: none; z-index: 0;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='300' height='300'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.75' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='300' height='300' filter='url(%23n)' opacity='0.04'/%3E%3C/svg%3E");
+      background-repeat: repeat;
+    }
+
+    .input-field {
+      width: 100%;
+      padding: 12px 16px;
+      border-radius: 12px;
+      border: 1.5px solid #dce5ee;
+      background: #fff;
+      font-size: 14px;
+      font-family: 'Inter', sans-serif;
+      color: #132d42;
+      outline: none;
+      transition: border-color 0.15s, box-shadow 0.15s;
+    }
+    .input-field:focus {
+      border-color: #0a8f8f;
+      box-shadow: 0 0 0 3px rgba(10,143,143,0.12);
+    }
+    .input-field::placeholder { color: #8ba5bc; }
+
+    .btn-primary {
+      display: flex; align-items: center; justify-content: center;
+      width: 100%; padding: 14px;
+      border-radius: 12px;
+      font-weight: 600; font-size: 15px; color: #fff;
+      background: linear-gradient(135deg, #0d1f3c, #0a8f8f);
+      box-shadow: 0 8px 24px rgba(10,143,143,0.28);
+      transition: opacity 0.15s, transform 0.15s;
+      cursor: pointer; border: none;
+    }
+    .btn-primary:hover  { opacity: 0.92; transform: translateY(-1px); }
+    .btn-primary:active { transform: scale(0.98); }
+
+    .divider { position: relative; text-align: center; margin: 20px 0; }
+    .divider::before, .divider::after {
+      content: ''; position: absolute; top: 50%; width: calc(50% - 28px);
+      height: 1px; background: #dce5ee;
+    }
+    .divider::before { left: 0; }
+    .divider::after  { right: 0; }
+  </style>
+</head>
+<body class="min-h-screen flex" style="background:#f8fafb">
+
+  <!-- Left panel — branding -->
+  <div class="hidden lg:flex lg:w-[52%] bg-split grain relative overflow-hidden flex-col justify-between p-14">
+    <!-- Logo -->
+    <a href="index.html" class="relative z-10 flex items-center gap-3">
+      <div class="w-9 h-9 rounded-xl flex items-center justify-center text-white font-bold shadow-teal-sm" style="background:linear-gradient(135deg,#0a8f8f,#1ab3b3)">✚</div>
+      <span class="text-white font-semibold text-lg">Professional Adherence Program</span>
+    </a>
+
+    <!-- Center copy -->
+    <div class="relative z-10">
+      <h1 class="serif text-white leading-[1.15] mb-5" style="font-size:clamp(32px,3.5vw,46px);letter-spacing:-0.03em">
+        Your health journey,<br><span style="color:#1ab3b3">all in one place.</span>
+      </h1>
+      <p class="text-white/55 text-lg leading-relaxed max-w-sm">
+        Access your personalized care plan, medication reminders, progress reports, and care team — all from your secure dashboard.
+      </p>
+
+      <!-- Mini feature list -->
+      <div class="mt-10 space-y-4">
+        <div class="flex items-center gap-3">
+          <div class="w-8 h-8 rounded-lg flex items-center justify-center text-sm" style="background:rgba(10,143,143,0.25)">📋</div>
+          <span class="text-white/70 text-sm">View &amp; update your care plan anytime</span>
+        </div>
+        <div class="flex items-center gap-3">
+          <div class="w-8 h-8 rounded-lg flex items-center justify-center text-sm" style="background:rgba(10,143,143,0.25)">📱</div>
+          <span class="text-white/70 text-sm">Manage medication reminders &amp; check-ins</span>
+        </div>
+        <div class="flex items-center gap-3">
+          <div class="w-8 h-8 rounded-lg flex items-center justify-center text-sm" style="background:rgba(10,143,143,0.25)">💬</div>
+          <span class="text-white/70 text-sm">Message your care coordinator securely</span>
+        </div>
+        <div class="flex items-center gap-3">
+          <div class="w-8 h-8 rounded-lg flex items-center justify-center text-sm" style="background:rgba(10,143,143,0.25)">📊</div>
+          <span class="text-white/70 text-sm">Track your adherence progress over time</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Bottom badge -->
+    <div class="relative z-10 flex items-center gap-3 rounded-2xl px-5 py-4 border border-white/10" style="background:rgba(255,255,255,0.07);backdrop-filter:blur(12px)">
+      <span class="text-2xl">🔒</span>
+      <div>
+        <div class="text-white text-sm font-semibold">HIPAA-Compliant &amp; Encrypted</div>
+        <div class="text-white/45 text-xs">Your data is protected with 256-bit encryption</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Right panel — login form -->
+  <div class="flex-1 flex flex-col justify-center items-center px-6 py-12">
+
+    <!-- Mobile logo -->
+    <a href="index.html" class="flex lg:hidden items-center gap-3 mb-10">
+      <div class="w-9 h-9 rounded-xl flex items-center justify-center text-white font-bold shadow-teal-sm" style="background:linear-gradient(135deg,#0a8f8f,#1ab3b3)">✚</div>
+      <span class="font-semibold text-lg" style="color:#0d1f3c">Professional Adherence Program</span>
+    </a>
+
+    <div class="w-full max-w-[420px]">
+      <h2 class="serif mb-1" style="font-size:28px;color:#0d1f3c;letter-spacing:-0.02em">Welcome back</h2>
+      <p class="text-sm mb-8" style="color:#5f8099">Sign in to your patient dashboard.</p>
+
+      <!-- Dev mode banner -->
+      <div class="flex items-start gap-3 rounded-xl px-4 py-3.5 mb-7 border" style="background:#e0f5f5;border-color:#b3e6e6">
+        <span class="text-lg mt-0.5">🔑</span>
+        <div>
+          <div class="text-sm font-semibold" style="color:#076e6e">Development Mode</div>
+          <div class="text-xs leading-relaxed mt-0.5" style="color:#0a8f8f">Use your test credentials to access the dashboard.</div>
+        </div>
+      </div>
+
+      <form onsubmit="handleLogin(event)" novalidate>
+        <!-- Email -->
+        <div class="mb-4">
+          <label class="block text-xs font-semibold mb-1.5" style="color:#0d1f3c">Username</label>
+          <input type="text" id="email" class="input-field" placeholder="Enter username" />
+        </div>
+
+        <!-- Password -->
+        <div class="mb-2">
+          <div class="flex justify-between items-center mb-1.5">
+            <label class="block text-xs font-semibold" style="color:#0d1f3c">Password</label>
+            <a href="#" class="text-xs font-medium hover:underline" style="color:#0a8f8f">Forgot password?</a>
+          </div>
+          <div class="relative">
+            <input type="password" id="password" class="input-field" placeholder="••••••••" style="padding-right:44px" />
+            <button type="button" onclick="togglePwd()" class="absolute right-3 top-1/2 -translate-y-1/2 text-base" style="color:#8ba5bc;background:none;border:none;cursor:pointer" id="pwd-toggle">👁️</button>
+          </div>
+        </div>
+
+        <!-- Remember me -->
+        <div class="flex items-center gap-2.5 mb-7 mt-4">
+          <input type="checkbox" id="remember" class="w-4 h-4 rounded accent-teal" style="accent-color:#0a8f8f" />
+          <label for="remember" class="text-sm select-none" style="color:#5f8099">Keep me signed in</label>
+        </div>
+
+        <!-- Submit -->
+        <button type="submit" class="btn-primary" id="login-btn">
+          Sign In to Dashboard →
+        </button>
+
+        <div class="divider"><span class="text-xs px-3 relative z-10" style="color:#8ba5bc;background:#f8fafb">or</span></div>
+
+        <!-- SSO placeholder -->
+        <button type="button" class="w-full flex items-center justify-center gap-3 py-3.5 rounded-xl border text-sm font-semibold transition-all duration-150 hover:bg-gray-50" style="border-color:#dce5ee;color:#0d1f3c">
+          <span>🏥</span> Sign in with your Health Provider (SSO)
+        </button>
+      </form>
+
+      <!-- Register link -->
+      <p class="text-center text-sm mt-8" style="color:#8ba5bc">
+        Not enrolled yet?
+        <a href="#enroll" onclick="window.location='index.html#enroll'" class="font-semibold hover:underline" style="color:#0a8f8f">Enroll for free →</a>
+      </p>
+
+      <!-- Footer links -->
+      <div class="flex justify-center gap-5 mt-10">
+        <a href="#" class="text-xs hover:underline" style="color:#b8c9d9">Privacy Policy</a>
+        <a href="#" class="text-xs hover:underline" style="color:#b8c9d9">HIPAA Notice</a>
+        <a href="#" class="text-xs hover:underline" style="color:#b8c9d9">Help</a>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    function togglePwd() {
+      const input = document.getElementById('password');
+      const btn   = document.getElementById('pwd-toggle');
+      if (input.type === 'password') { input.type = 'text'; btn.textContent = '🙈'; }
+      else                           { input.type = 'password'; btn.textContent = '👁️'; }
+    }
+
+    function seedPatientData() {
+      const today = new Date();
+      const todayStr = today.toISOString().slice(0, 10);
+      const tomorrow = new Date(today);
+      tomorrow.setDate(tomorrow.getDate() + 1);
+      const tomorrowStr = tomorrow.toISOString().slice(0, 10);
+
+      const patients = [
+        { id:'pat_seed_1', name:'Maria Garcia', email:'maria.garcia@email.com', phone:'(555) 234-5678', pathology:'Chronic Disease Management', notes:'Diabetes Type 2, currently on metformin. Weekly check-in calls preferred.', scheduledDate: todayStr+'T10:00', createdAt: new Date().toISOString() },
+        { id:'pat_seed_2', name:'James Wilson', email:'james.w@email.com', phone:'(555) 345-6789', pathology:'Post-Surgical Recovery', notes:'Knee replacement 2 weeks ago. Physical therapy adherence tracking.', scheduledDate: todayStr+'T14:30', createdAt: new Date().toISOString() },
+        { id:'pat_seed_3', name:'Sarah Chen', email:'sarah.chen@email.com', phone:'(555) 456-7890', pathology:'Mental Health & Behavioral', notes:'Anxiety management program. Prefers afternoon calls.', scheduledDate: todayStr+'T16:00', createdAt: new Date().toISOString() },
+        { id:'pat_seed_4', name:'Robert Johnson', email:'r.johnson@email.com', phone:'(555) 567-8901', pathology:'Respiratory & Pulmonary', notes:'COPD management. Inhaler technique follow-up needed.', scheduledDate: tomorrowStr+'T09:00', createdAt: new Date().toISOString() },
+        { id:'pat_seed_5', name:'Linda Thompson', email:'linda.t@email.com', phone:'(555) 678-9012', pathology:'Senior & Geriatric Care', notes:'Multiple medications. Caregiver (daughter) involved in calls.', scheduledDate: tomorrowStr+'T11:00', createdAt: new Date().toISOString() }
+      ];
+      localStorage.setItem('pap_patients', JSON.stringify(patients));
+    }
+
+    function handleLogin(e) {
+      e.preventDefault();
+      const username = document.getElementById('email').value.trim();
+      const password = document.getElementById('password').value;
+      const btn = document.getElementById('login-btn');
+
+      if (username === 'Nickj' && password === '1234') {
+        localStorage.setItem('pap_user', JSON.stringify({ username: 'Nickj' }));
+        if (!localStorage.getItem('pap_patients')) {
+          seedPatientData();
+        }
+        btn.textContent = '✓ Welcome back, Nickj!';
+        btn.style.background = 'linear-gradient(135deg,#059669,#34d399)';
+        setTimeout(() => { window.location.href = 'dashboard.html'; }, 600);
+      } else {
+        btn.textContent = '✗ Invalid credentials';
+        btn.style.background = 'linear-gradient(135deg,#dc2626,#fb7185)';
+        btn.style.boxShadow = 'none';
+        setTimeout(() => {
+          btn.textContent = 'Sign In to Dashboard →';
+          btn.style.background = '';
+          btn.style.boxShadow = '';
+        }, 2500);
+      }
+    }
+  </script>
+</body>
+</html>
