@@ -134,6 +134,36 @@
     .exercise-card:hover {
       box-shadow: 0 2px 8px rgba(13,31,60,0.06), 0 8px 32px rgba(13,31,60,0.1);
     }
+
+    /* Inline scroll-wheel parameter */
+    .param-wheel {
+      display: inline-block;
+      cursor: ns-resize;
+      font-weight: 600;
+      color: #0a8f8f;
+      background: rgba(10,143,143,0.08);
+      border-bottom: 2px solid #0a8f8f;
+      padding: 0 4px;
+      border-radius: 4px 4px 0 0;
+      user-select: none;
+      -webkit-user-select: none;
+      transition: background 0.15s, color 0.15s, transform 0.1s;
+    }
+    .param-wheel:hover {
+      background: rgba(10,143,143,0.15);
+      color: #076e6e;
+    }
+    .param-wheel.flash-up {
+      transform: translateY(-1px);
+      background: rgba(10,143,143,0.22);
+    }
+    .param-wheel.flash-down {
+      transform: translateY(1px);
+      background: rgba(10,143,143,0.22);
+    }
+    .param-number {
+      font-weight: 700;
+    }
   </style>
 </head>
 <body class="antialiased" style="background:#f8fafb">
@@ -228,8 +258,11 @@
       <div class="absolute top-0 left-0 right-0 h-[3px] rounded-t-2xl"
            style="background:linear-gradient(90deg,#0a8f8f,#1ab3b3)"></div>
       <div class="p-7 pb-10">
-        <h2 class="serif text-navy text-lg tracking-snug mb-4">Add Exercise</h2>
-        <div class="flex gap-3">
+        <h2 class="serif text-navy text-lg tracking-snug mb-4">Add Exercises</h2>
+
+        <!-- Individual exercise -->
+        <label class="block text-xs font-semibold mb-1.5" style="color:#0d1f3c">Individual Exercise</label>
+        <div class="flex gap-3 mb-5">
           <div id="search-select-add" class="search-select"></div>
           <button onclick="addExerciseToPatient()"
                   class="px-5 py-3 rounded-xl text-sm font-semibold text-white shadow-teal-sm btn-press
@@ -240,6 +273,24 @@
             + Add
           </button>
         </div>
+
+        <!-- Add by pathology -->
+        <label class="block text-xs font-semibold mb-1.5" style="color:#0d1f3c">Add by Pathology</label>
+        <div class="flex gap-3">
+          <div id="search-select-pathology" class="search-select"></div>
+          <button onclick="addPathologyExercises()"
+                  class="px-5 py-3 rounded-xl text-sm font-semibold text-white shadow-teal-sm btn-press
+                         focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal-300 flex-shrink-0"
+                  style="background:linear-gradient(135deg,#0d1f3c,#2e5299);
+                         transition:opacity 0.15s,transform 0.15s"
+                  id="add-pathology-btn">
+            + Add All
+          </button>
+        </div>
+
+        <!-- Feedback toast -->
+        <div id="pathology-add-feedback" class="hidden mt-3 px-4 py-2.5 rounded-xl text-sm font-medium"
+             style="background:#e0f5f5;color:#076e6e;border:1px solid #b3e6e6"></div>
       </div>
     </div>
 
@@ -284,9 +335,59 @@
   function getPatients() {
     return JSON.parse(localStorage.getItem('pap_patients') || '[]');
   }
+  const DEFAULT_INSTRUCTIONS = {
+    'Patellar mobilisations': `Patellar Mobilisations\n\nFor this exercise, please find a comfortable place to sit or lie down. You will need a yoga mat or a bed. Lie down on your back with your surgical leg extended and relaxed. Make sure your knee is fully supported and your muscles are relaxed.\n\n[... pause 15 seconds to get into position ...]\n\nYou are now going to gently move your kneecap to prevent scar tissue from forming and to keep the joint mobile. This is very important after surgery.\n\n[... pause 5 seconds ...]\n\nFirst, locate your kneecap with both hands. Place your thumbs on either side of the kneecap and your fingers gently around it.\n\n[... pause 10 seconds ...]\n\nNow, gently push your kneecap upward, toward your hip. Use a slow, steady pressure. Do not force it. You should feel a gentle glide, not pain.\n\n[... pause 10 seconds ...]\n\nNow gently push your kneecap downward, toward your foot. Again, slow and steady. Let it glide naturally.\n\n[... pause 10 seconds ...]\n\nRepeat this up-and-down motion 10 times. Push up... hold for 2 seconds... push down... hold for 2 seconds. Begin now.\n\n[... pause 60 seconds ...]\n\nWell done. Now you will move your kneecap from side to side. Place your fingers on the outer edge and your thumb on the inner edge of the kneecap.\n\n[... pause 10 seconds ...]\n\nGently push the kneecap inward, toward the other knee. Hold for 2 seconds.\n\n[... pause 5 seconds ...]\n\nNow push it gently outward, away from the other knee. Hold for 2 seconds.\n\n[... pause 5 seconds ...]\n\nRepeat this side-to-side motion 10 times. Begin now.\n\n[... pause 60 seconds ...]\n\nExcellent. You have completed the patellar mobilisations. Let your leg rest for a moment before moving on.\n\n[... pause 10 seconds ...]`,
+    'Heel slides with towel': `Heel Slides with Towel\n\nLie down on your back with your surgical leg extended and relaxed. You will need a towel or a long belt. Loop the towel around the bottom of your foot on the surgical side. Hold one end of the towel in each hand. Make sure your heel is resting on a smooth surface. If you are on a mat, you can put a plastic bag or a sock under your heel to reduce friction.\n\n[... pause 15 seconds to get into position ...]\n\nYou are now going to slowly bend your knee by sliding your heel toward your buttock. This exercise helps you regain the ability to bend your knee.\n\n[... pause 5 seconds ...]\n\nSlowly pull on the towel with both hands while letting your heel slide along the surface toward you. Your knee will bend naturally as the heel comes closer.\n\n[... pause 10 seconds ...]\n\nSlide only as far as you feel a comfortable stretch. You may feel some pressure around your knee, but it should not be painful. If you feel sharp pain, stop and reduce the range.\n\n[... pause 10 seconds ...]\n\nHold this bent position for 5 seconds.\n\n[... pause 5 seconds ...]\n\nNow slowly slide your heel back to the starting position. Keep the movement controlled.\n\n[... pause 10 seconds ...]\n\nRepeat this 15 times. Slide your heel toward you... hold for 5 seconds... then slide back. Begin now.\n\n[... pause 2 minutes for 15 repetitions ...]\n\nWell done. Rest for a moment.\n\n[... pause 10 seconds ...]`,
+    'Seated assisted knee flexion/extension': `Seated Knee Extension\n\nFor this exercise, sit on the edge of a sturdy chair or the side of your bed. Your feet should be flat on the floor, or your legs hanging over the edge. Keep your back straight and your hands resting on your thighs or holding the sides of the chair for support.\n\n[... pause 15 seconds to get into position ...]\n\nThis exercise will help you regain the ability to straighten your knee.\n\n[... pause 5 seconds ...]\n\nSit with your surgical leg hanging over the edge. Slowly straighten your knee by lifting your foot upward, as if kicking gently forward.\n\n[... pause 10 seconds ...]\n\nStraighten as much as you can. Hold at the top for 5 seconds. Then slowly lower your foot back down.\n\n[... pause 10 seconds ...]\n\nRepeat 15 times. Begin now.\n\n[... pause 2 minutes for 15 repetitions ...]\n\nExcellent work. Rest for a moment.\n\n[... pause 10 seconds ...]`,
+    'Prone hang / heel prop — extension stretches': `Prone Hang — Extension Stretches\n\nThe goal of this exercise is to achieve full knee extension. You will need a bed or a couch. Lie down on your stomach with your surgical leg extended and relaxed.\n\n[... pause 15 seconds to get into position ...]\n\nCarefully position yourself so that your knees are at the edge of the bed, and your lower legs hang off the edge. Place a small rolled towel just above your kneecap on the thigh for comfort.\n\n[... pause 15 seconds ...]\n\nLet your lower legs relax completely and hang. Gravity will gently straighten your knee. Avoid contracting your muscles. Just let the legs hang.\n\n[... pause 10 seconds ...]\n\nHold this position for 5 to 10 minutes. Breathe slowly and try to stay as relaxed as possible.\n\n[... pause 5 minutes ...]\n\nWell done. You can slowly bring your legs back onto the bed and roll onto your back to rest.\n\n[... pause 10 seconds ...]`,
+    'Standing gastroc stretch': `Standing Gastrocnemius Stretch\n\nFor this exercise, you will need a wall or a sturdy surface to lean against. Stand facing the wall, about an arm's length away. Place both hands flat on the wall at shoulder height for support.\n\n[... pause 15 seconds to get into position ...]\n\nThis stretch targets the larger calf muscle, the gastrocnemius, which helps with walking and knee mobility.\n\n[... pause 5 seconds ...]\n\nStep your surgical leg back, about 60 to 90 centimetres behind you. Keep this back leg straight with the heel firmly pressed into the floor. Your front knee should be slightly bent.\n\n[... pause 10 seconds ...]\n\nNow lean your body forward toward the wall, keeping your back heel down. You should feel a stretch in the calf of your back leg.\n\n[... pause 10 seconds ...]\n\nHold this stretch for 30 seconds. Keep breathing normally. Do not bounce.\n\n[... pause 30 seconds ...]\n\nNow relax. Bring your foot back to the starting position.\n\n[... pause 10 seconds ...]\n\nRepeat this stretch 3 times. Step back again and hold for 30 seconds. Begin now.\n\n[... pause 30 seconds ...]\n\nAnd one more time. Step back, lean forward, and hold for 30 seconds.\n\n[... pause 30 seconds ...]\n\nWell done. Bring both feet together and stand comfortably.\n\n[... pause 10 seconds ...]`,
+    'Supine active hamstring stretch': `Supine Active Hamstring Stretch\n\nPlease lie down on your back on your mat or bed. Keep both legs straight to start. You will not need any equipment for this version.\n\n[... pause 15 seconds to get into position ...]\n\nThis stretch will help maintain flexibility in the back of your thigh, which is important for walking and knee function.\n\n[... pause 5 seconds ...]\n\nBend the knee of your surgical leg and bring it toward your chest. Use your hands behind your thigh to keep the leg in this position. Slowly try to straighten your knee by extending your foot toward the ceiling.\n\n[... pause 10 seconds ...]\n\nUse only your own muscle strength to straighten the leg. Do not use your hands for assistance. Straighten as much as you can.\n\n[... pause 10 seconds ...]\n\nYou should feel a stretch along the back of your thigh and into your buttocks. Hold this position for 15 to 30 seconds.\n\n[... pause 30 seconds ...]\n\nNow slowly bend your knee again and lower your leg back down.\n\n[... pause 10 seconds ...]\n\nRepeat this 5 times. Lift, straighten, hold for 15 to 30 seconds, and lower. Begin now.\n\n[... pause 3 minutes for 5 repetitions ...]\n\nWell done. Rest your legs.\n\n[... pause 10 seconds ...]`,
+    'Straight leg raise': `Straight Leg Raise\n\nImportant: Only perform this exercise if you can fully straighten your knee without any lag. This means when you tighten your thigh, your knee should go completely straight. If it does not, skip this exercise.\n\n[... pause 15 seconds to get into position ...]\n\nPlease lie down on your back on your mat or bed. Keep both legs straight to start. Bend your non-surgical leg so the foot is flat on the surface. Keep your surgical leg straight.\n\n[... pause 10 seconds ...]\n\nFirst, tighten the quadriceps on your surgical leg, pressing the back of your knee flat into the surface. Lock your knee completely straight.\n\n[... pause 10 seconds ...]\n\nNow, keeping the knee locked straight, slowly lift your entire surgical leg off the surface. Raise it to the height of the other knee, approximately 30 to 45 degrees.\n\n[... pause 10 seconds ...]\n\nHold at the top for 5 seconds.\n\n[... pause 5 seconds ...]\n\nSlowly lower your leg back down. Do not let it drop. Control the movement all the way down.\n\n[... pause 10 seconds ...]\n\nRepeat this 10 times. Tighten, lift, hold for 5 seconds, and lower slowly. Begin now.\n\n[... pause 2 minutes for 10 repetitions ...]\n\nExcellent. Rest your leg.\n\n[... pause 10 seconds ...]`,
+    'Hip abduction': `Hip Abduction\n\nPlease lie down on your back on your mat or bed. Roll onto your non-surgical side so you are lying on your side. You can place a pillow under your head for comfort. Keep your bottom leg slightly bent for stability. Your surgical leg should be on top, straight.\n\n[... pause 15 seconds to get into position ...]\n\nThis exercise strengthens the muscles on the outside of your hip, which are important for balance and walking.\n\n[... pause 5 seconds ...]\n\nKeep your surgical leg straight and your toes pointing forward, not toward the ceiling.\n\n[... pause 10 seconds ...]\n\nSlowly lift your top leg upward, away from the bottom leg. Raise it about 30 to 45 degrees. Keep your body still and avoid rolling backward.\n\n[... pause 10 seconds ...]\n\nHold at the top for 3 seconds.\n\n[... pause 5 seconds ...]\n\nSlowly lower your leg back down.\n\n[... pause 5 seconds ...]\n\nRepeat this 15 times. Lift, hold, and lower. Begin now.\n\n[... pause 2 minutes for 15 repetitions ...]\n\nWell done. Roll back onto your back.\n\n[... pause 10 seconds ...]`,
+    'Multi-angle isometrics — 90° and 60° knee extension': `Multi-Angle Isometrics\n\nSit on a sturdy chair with your feet flat on the floor. You will need a wall in front of you or another fixed surface that your foot can press against. You can use a pillow between your foot and the wall for comfort.\n\n[... pause 15 seconds to get into position ...]\n\nThis exercise builds quadriceps strength at specific angles without moving the joint. This is called an isometric contraction. It is safe and effective after surgery.\n\n[... pause 5 seconds ...]\n\nFirst, at 90 degrees. Sit with your knee bent at a right angle, your foot flat on the floor. Place your foot against the wall.\n\n[... pause 10 seconds ...]\n\nNow push your foot forward as if trying to straighten your knee, but do not let the knee actually move. The wall provides the resistance. Push hard for 10 seconds.\n\n[... pause 10 seconds ...]\n\nRelax for 10 seconds.\n\n[... pause 10 seconds ...]\n\nRepeat 10 times at this 90-degree angle. Push for 10 seconds, rest for 10 seconds. Begin now.\n\n[... pause 3 minutes for 10 repetitions ...]\n\nNow adjust your position to 60 degrees. Extend your leg slightly forward so your knee is less bent, about two-thirds of the way to straight. You may need to scoot your chair slightly back from the wall.\n\n[... pause 10 seconds ...]\n\nAgain, push forward against the wall or your other leg. Push for 10 seconds, rest for 10 seconds. Repeat 10 times. Begin now.\n\n[... pause 3 minutes for 10 repetitions ...]\n\nExcellent work. Relax your legs.\n\n[... pause 10 seconds ...]`,
+    'Calf raises': `Calf Raises\n\nHold onto a sturdy surface such as a kitchen counter, a table, or the back of a heavy chair for balance. Stand with your feet shoulder-width apart and your weight evenly distributed on both legs.\n\n[... pause 15 seconds to get into position ...]\n\nThis exercise strengthens your calf muscles, which are essential for walking, climbing stairs, and overall stability.\n\n[... pause 5 seconds ...]\n\nSlowly rise up onto your toes, lifting both heels off the ground. Take about 2 seconds to rise up.\n\n[... pause 10 seconds ...]\n\nHold at the top for 2 seconds.\n\n[... pause 5 seconds ...]\n\nNow slowly lower your heels back down over 4 seconds. Control the descent.\n\n[... pause 10 seconds ...]\n\nRepeat this 12 times. Rise up in 2 seconds, hold for 2 seconds, lower in 4 seconds. Begin now.\n\n[... pause 2 minutes for 12 repetitions ...]\n\nIf that felt manageable, you may do a second set of 12 after a short rest.\n\n[... pause 15 seconds ...]\n\nExcellent work. Relax your legs.\n\n[... pause 10 seconds ...]`,
+  };
+
+  // ── Instruction templates with {{editable}} markers for per-patient customization ──
+  const INSTRUCTION_TEMPLATES = {
+    'Patellar mobilisations': `Patellar Mobilisations\n\nFor this exercise, please find a comfortable place to sit or lie down. You will need a yoga mat or a bed. Lie down on your back with your surgical leg extended and relaxed. Make sure your knee is fully supported and your muscles are relaxed.\n\n[... pause 15 seconds to get into position ...]\n\nYou are now going to gently move your kneecap to prevent scar tissue from forming and to keep the joint mobile. This is very important after surgery.\n\n[... pause 5 seconds ...]\n\nFirst, locate your kneecap with both hands. Place your thumbs on either side of the kneecap and your fingers gently around it.\n\n[... pause 10 seconds ...]\n\nNow, gently push your kneecap upward, toward your hip. Use a slow, steady pressure. Do not force it. You should feel a gentle glide, not pain.\n\n[... pause 10 seconds ...]\n\nNow gently push your kneecap downward, toward your foot. Again, slow and steady. Let it glide naturally.\n\n[... pause 10 seconds ...]\n\nRepeat this up-and-down motion {{10 times}}. Push up... hold for {{2 seconds}}... push down... hold for {{2 seconds}}. Begin now.\n\n[... pause 60 seconds ...]\n\nWell done. Now you will move your kneecap from side to side. Place your fingers on the outer edge and your thumb on the inner edge of the kneecap.\n\n[... pause 10 seconds ...]\n\nGently push the kneecap inward, toward the other knee. Hold for {{2 seconds}}.\n\n[... pause 5 seconds ...]\n\nNow push it gently outward, away from the other knee. Hold for {{2 seconds}}.\n\n[... pause 5 seconds ...]\n\nRepeat this side-to-side motion {{10 times}}. Begin now.\n\n[... pause 60 seconds ...]\n\nExcellent. You have completed the patellar mobilisations. Let your leg rest for a moment before moving on.\n\n[... pause 10 seconds ...]`,
+    'Heel slides with towel': `Heel Slides with Towel\n\nLie down on your back with your surgical leg extended and relaxed. You will need a towel or a long belt. Loop the towel around the bottom of your foot on the surgical side. Hold one end of the towel in each hand. Make sure your heel is resting on a smooth surface. If you are on a mat, you can put a plastic bag or a sock under your heel to reduce friction.\n\n[... pause 15 seconds to get into position ...]\n\nYou are now going to slowly bend your knee by sliding your heel toward your buttock. This exercise helps you regain the ability to bend your knee.\n\n[... pause 5 seconds ...]\n\nSlowly pull on the towel with both hands while letting your heel slide along the surface toward you. Your knee will bend naturally as the heel comes closer.\n\n[... pause 10 seconds ...]\n\nSlide only as far as you feel a comfortable stretch. You may feel some pressure around your knee, but it should not be painful. If you feel sharp pain, stop and reduce the range.\n\n[... pause 10 seconds ...]\n\nHold this bent position for {{5 seconds}}.\n\n[... pause 5 seconds ...]\n\nNow slowly slide your heel back to the starting position. Keep the movement controlled.\n\n[... pause 10 seconds ...]\n\nRepeat this {{15 times}}. Slide your heel toward you... hold for {{5 seconds}}... then slide back. Begin now.\n\n[... pause 2 minutes for 15 repetitions ...]\n\nWell done. Rest for a moment.\n\n[... pause 10 seconds ...]`,
+    'Seated assisted knee flexion/extension': `Seated Knee Extension\n\nFor this exercise, sit on the edge of a sturdy chair or the side of your bed. Your feet should be flat on the floor, or your legs hanging over the edge. Keep your back straight and your hands resting on your thighs or holding the sides of the chair for support.\n\n[... pause 15 seconds to get into position ...]\n\nThis exercise will help you regain the ability to straighten your knee.\n\n[... pause 5 seconds ...]\n\nSit with your surgical leg hanging over the edge. Slowly straighten your knee by lifting your foot upward, as if kicking gently forward.\n\n[... pause 10 seconds ...]\n\nStraighten as much as you can. Hold at the top for {{5 seconds}}. Then slowly lower your foot back down.\n\n[... pause 10 seconds ...]\n\nRepeat {{15 times}}. Begin now.\n\n[... pause 2 minutes for 15 repetitions ...]\n\nExcellent work. Rest for a moment.\n\n[... pause 10 seconds ...]`,
+    'Prone hang / heel prop — extension stretches': `Prone Hang \u2014 Extension Stretches\n\nThe goal of this exercise is to achieve full knee extension. You will need a bed or a couch. Lie down on your stomach with your surgical leg extended and relaxed.\n\n[... pause 15 seconds to get into position ...]\n\nCarefully position yourself so that your knees are at the edge of the bed, and your lower legs hang off the edge. Place a small rolled towel just above your kneecap on the thigh for comfort.\n\n[... pause 15 seconds ...]\n\nLet your lower legs relax completely and hang. Gravity will gently straighten your knee. Avoid contracting your muscles. Just let the legs hang.\n\n[... pause 10 seconds ...]\n\nHold this position for {{5 to 10 minutes}}. Breathe slowly and try to stay as relaxed as possible.\n\n[... pause 5 minutes ...]\n\nWell done. You can slowly bring your legs back onto the bed and roll onto your back to rest.\n\n[... pause 10 seconds ...]`,
+    'Standing gastroc stretch': `Standing Gastrocnemius Stretch\n\nFor this exercise, you will need a wall or a sturdy surface to lean against. Stand facing the wall, about an arm\u2019s length away. Place both hands flat on the wall at shoulder height for support.\n\n[... pause 15 seconds to get into position ...]\n\nThis stretch targets the larger calf muscle, the gastrocnemius, which helps with walking and knee mobility.\n\n[... pause 5 seconds ...]\n\nStep your surgical leg back, about {{60 to 90 centimetres}} behind you. Keep this back leg straight with the heel firmly pressed into the floor. Your front knee should be slightly bent.\n\n[... pause 10 seconds ...]\n\nNow lean your body forward toward the wall, keeping your back heel down. You should feel a stretch in the calf of your back leg.\n\n[... pause 10 seconds ...]\n\nHold this stretch for {{30 seconds}}. Keep breathing normally. Do not bounce.\n\n[... pause 30 seconds ...]\n\nNow relax. Bring your foot back to the starting position.\n\n[... pause 10 seconds ...]\n\nRepeat this stretch {{3 times}}. Step back again and hold for {{30 seconds}}. Begin now.\n\n[... pause 30 seconds ...]\n\nAnd one more time. Step back, lean forward, and hold for {{30 seconds}}.\n\n[... pause 30 seconds ...]\n\nWell done. Bring both feet together and stand comfortably.\n\n[... pause 10 seconds ...]`,
+    'Supine active hamstring stretch': `Supine Active Hamstring Stretch\n\nPlease lie down on your back on your mat or bed. Keep both legs straight to start. You will not need any equipment for this version.\n\n[... pause 15 seconds to get into position ...]\n\nThis stretch will help maintain flexibility in the back of your thigh, which is important for walking and knee function.\n\n[... pause 5 seconds ...]\n\nBend the knee of your surgical leg and bring it toward your chest. Use your hands behind your thigh to keep the leg in this position. Slowly try to straighten your knee by extending your foot toward the ceiling.\n\n[... pause 10 seconds ...]\n\nUse only your own muscle strength to straighten the leg. Do not use your hands for assistance. Straighten as much as you can.\n\n[... pause 10 seconds ...]\n\nYou should feel a stretch along the back of your thigh and into your buttocks. Hold this position for {{15 to 30 seconds}}.\n\n[... pause 30 seconds ...]\n\nNow slowly bend your knee again and lower your leg back down.\n\n[... pause 10 seconds ...]\n\nRepeat this {{5 times}}. Lift, straighten, hold for {{15 to 30 seconds}}, and lower. Begin now.\n\n[... pause 3 minutes for 5 repetitions ...]\n\nWell done. Rest your legs.\n\n[... pause 10 seconds ...]`,
+    'Straight leg raise': `Straight Leg Raise\n\nImportant: Only perform this exercise if you can fully straighten your knee without any lag. This means when you tighten your thigh, your knee should go completely straight. If it does not, skip this exercise.\n\n[... pause 15 seconds to get into position ...]\n\nPlease lie down on your back on your mat or bed. Keep both legs straight to start. Bend your non-surgical leg so the foot is flat on the surface. Keep your surgical leg straight.\n\n[... pause 10 seconds ...]\n\nFirst, tighten the quadriceps on your surgical leg, pressing the back of your knee flat into the surface. Lock your knee completely straight.\n\n[... pause 10 seconds ...]\n\nNow, keeping the knee locked straight, slowly lift your entire surgical leg off the surface. Raise it to the height of the other knee, approximately {{30 to 45 degrees}}.\n\n[... pause 10 seconds ...]\n\nHold at the top for {{5 seconds}}.\n\n[... pause 5 seconds ...]\n\nSlowly lower your leg back down. Do not let it drop. Control the movement all the way down.\n\n[... pause 10 seconds ...]\n\nRepeat this {{10 times}}. Tighten, lift, hold for {{5 seconds}}, and lower slowly. Begin now.\n\n[... pause 2 minutes for 10 repetitions ...]\n\nExcellent. Rest your leg.\n\n[... pause 10 seconds ...]`,
+    'Hip abduction': `Hip Abduction\n\nPlease lie down on your back on your mat or bed. Roll onto your non-surgical side so you are lying on your side. You can place a pillow under your head for comfort. Keep your bottom leg slightly bent for stability. Your surgical leg should be on top, straight.\n\n[... pause 15 seconds to get into position ...]\n\nThis exercise strengthens the muscles on the outside of your hip, which are important for balance and walking.\n\n[... pause 5 seconds ...]\n\nKeep your surgical leg straight and your toes pointing forward, not toward the ceiling.\n\n[... pause 10 seconds ...]\n\nSlowly lift your top leg upward, away from the bottom leg. Raise it about {{30 to 45 degrees}}. Keep your body still and avoid rolling backward.\n\n[... pause 10 seconds ...]\n\nHold at the top for {{3 seconds}}.\n\n[... pause 5 seconds ...]\n\nSlowly lower your leg back down.\n\n[... pause 5 seconds ...]\n\nRepeat this {{15 times}}. Lift, hold, and lower. Begin now.\n\n[... pause 2 minutes for 15 repetitions ...]\n\nWell done. Roll back onto your back.\n\n[... pause 10 seconds ...]`,
+    'Multi-angle isometrics \u2014 90\u00b0 and 60\u00b0 knee extension': `Multi-Angle Isometrics\n\nSit on a sturdy chair with your feet flat on the floor. You will need a wall in front of you or another fixed surface that your foot can press against. You can use a pillow between your foot and the wall for comfort.\n\n[... pause 15 seconds to get into position ...]\n\nThis exercise builds quadriceps strength at specific angles without moving the joint. This is called an isometric contraction. It is safe and effective after surgery.\n\n[... pause 5 seconds ...]\n\nFirst, at {{90 degrees}}. Sit with your knee bent at a right angle, your foot flat on the floor. Place your foot against the wall.\n\n[... pause 10 seconds ...]\n\nNow push your foot forward as if trying to straighten your knee, but do not let the knee actually move. The wall provides the resistance. Push hard for {{10 seconds}}.\n\n[... pause 10 seconds ...]\n\nRelax for {{10 seconds}}.\n\n[... pause 10 seconds ...]\n\nRepeat {{10 times}} at this {{90-degree}} angle. Push for {{10 seconds}}, rest for {{10 seconds}}. Begin now.\n\n[... pause 3 minutes for 10 repetitions ...]\n\nNow adjust your position to {{60 degrees}}. Extend your leg slightly forward so your knee is less bent, about two-thirds of the way to straight. You may need to scoot your chair slightly back from the wall.\n\n[... pause 10 seconds ...]\n\nAgain, push forward against the wall or your other leg. Push for {{10 seconds}}, rest for {{10 seconds}}. Repeat {{10 times}}. Begin now.\n\n[... pause 3 minutes for 10 repetitions ...]\n\nExcellent work. Relax your legs.\n\n[... pause 10 seconds ...]`,
+    'Calf raises': `Calf Raises\n\nHold onto a sturdy surface such as a kitchen counter, a table, or the back of a heavy chair for balance. Stand with your feet shoulder-width apart and your weight evenly distributed on both legs.\n\n[... pause 15 seconds to get into position ...]\n\nThis exercise strengthens your calf muscles, which are essential for walking, climbing stairs, and overall stability.\n\n[... pause 5 seconds ...]\n\nSlowly rise up onto your toes, lifting both heels off the ground. Take about {{2 seconds}} to rise up.\n\n[... pause 10 seconds ...]\n\nHold at the top for {{2 seconds}}.\n\n[... pause 5 seconds ...]\n\nNow slowly lower your heels back down over {{4 seconds}}. Control the descent.\n\n[... pause 10 seconds ...]\n\nRepeat this {{12 times}}. Rise up in {{2 seconds}}, hold for {{2 seconds}}, lower in {{4 seconds}}. Begin now.\n\n[... pause 2 minutes for 12 repetitions ...]\n\nIf that felt manageable, you may do a second set of {{12}} after a short rest.\n\n[... pause 15 seconds ...]\n\nExcellent work. Relax your legs.\n\n[... pause 10 seconds ...]`,
+  };
+
   function getInstructions() {
-    return JSON.parse(localStorage.getItem('pap_exercise_instructions') || '{}');
+    const stored = JSON.parse(localStorage.getItem('pap_exercise_instructions') || '{}');
+    let updated = false;
+    for (const [name, text] of Object.entries(DEFAULT_INSTRUCTIONS)) {
+      if (!stored[name]) { stored[name] = text; updated = true; }
+    }
+    if (updated) localStorage.setItem('pap_exercise_instructions', JSON.stringify(stored));
+    return stored;
   }
+  // ── Per-patient exercise parameter overrides ──
+  function getPatientParams(patientId) {
+    const all = JSON.parse(localStorage.getItem('pap_patient_exercise_params') || '{}');
+    return all[patientId] || {};
+  }
+  let _paramSaveTimer = null;
+  function savePatientParam(patientId, exerciseName, index, value) {
+    clearTimeout(_paramSaveTimer);
+    _paramSaveTimer = setTimeout(() => {
+      const all = JSON.parse(localStorage.getItem('pap_patient_exercise_params') || '{}');
+      if (!all[patientId]) all[patientId] = {};
+      if (!all[patientId][exerciseName]) all[patientId][exerciseName] = {};
+      all[patientId][exerciseName][index] = value;
+      localStorage.setItem('pap_patient_exercise_params', JSON.stringify(all));
+    }, 500);
+  }
+
   function getAssignments() {
     return JSON.parse(localStorage.getItem('pap_exercise_assignments') || '{}');
   }
@@ -302,15 +403,29 @@
 
   // ── Master exercise list (all custom) ──
   const DEFAULT_EXERCISES = [
-    'Patellar mobilizations', 'Seated knee flexions', 'Seated knee extensions',
-    'Standing gastroc stretch', 'Standing soleo stretch', 'Calf raises',
-    'Straight leg raises', 'Hip abductions'
+    'Patellar mobilisations',
+    'Heel slides with towel',
+    'Seated assisted knee flexion/extension',
+    'Prone hang / heel prop — extension stretches',
+    'Standing gastroc stretch',
+    'Supine active hamstring stretch',
+    'Straight leg raise',
+    'Hip abduction',
+    'Multi-angle isometrics — 90° and 60° knee extension',
+    'Calf raises',
   ];
   function getCustomExercises() {
     const stored = JSON.parse(localStorage.getItem('pap_custom_exercises') || '[]');
     if (stored.length === 0) {
       localStorage.setItem('pap_custom_exercises', JSON.stringify(DEFAULT_EXERCISES));
       return [...DEFAULT_EXERCISES];
+    }
+    // Ensure any new defaults are merged in
+    const merged = new Set([...stored, ...DEFAULT_EXERCISES]);
+    if (merged.size > stored.length) {
+      const updated = [...merged];
+      localStorage.setItem('pap_custom_exercises', JSON.stringify(updated));
+      return updated;
     }
     return stored;
   }
@@ -365,6 +480,80 @@
   }
   function getSearchSelectValue(id) { const c = document.getElementById(id); return c ? (c._selectedValue || '') : ''; }
 
+  // ── Pathology Search Select ──
+  function createPathologySearchSelect(containerId) {
+    const container = document.getElementById(containerId);
+    if (!container) return;
+    const pathologies = getPathologyList();
+    const assignments = getAssignments();
+    container._selectedValue = '';
+
+    const options = pathologies.map(p => {
+      const count = (assignments[p.id] || []).length;
+      return { id: p.id, name: p.name, icon: p.icon, count };
+    }).filter(p => p.count > 0);
+
+    const inputId = containerId + '-input';
+    container.innerHTML = `
+      <input type="text" id="${inputId}" class="search-select-input"
+             placeholder="Search pathologies..." autocomplete="off" />
+      <div class="search-select-dropdown" id="${containerId}-dropdown"></div>`;
+
+    const input = document.getElementById(inputId);
+    const dropdown = document.getElementById(containerId + '-dropdown');
+
+    function renderOpts(filter) {
+      const q = (filter || '').toLowerCase();
+      const filtered = q ? options.filter(o => o.name.toLowerCase().includes(q)) : options;
+      if (filtered.length === 0) {
+        dropdown.innerHTML = '<div class="search-select-empty">No matching pathologies</div>';
+        return;
+      }
+      dropdown.innerHTML = filtered.map(o => `
+        <div class="search-select-option" data-value="${o.id}" style="display:flex;align-items:center;gap:8px">
+          <span>${o.icon}</span>
+          <span style="flex:1">${o.name}</span>
+          <span style="font-size:11px;color:#8ba5bc">${o.count} ex.</span>
+        </div>`).join('');
+    }
+
+    input.addEventListener('focus', () => { renderOpts(input.value); dropdown.classList.add('open'); });
+    input.addEventListener('input', () => { container._selectedValue = ''; renderOpts(input.value); dropdown.classList.add('open'); });
+    dropdown.addEventListener('click', (e) => {
+      const opt = e.target.closest('.search-select-option');
+      if (opt) {
+        const sel = options.find(o => o.id === opt.dataset.value);
+        input.value = sel ? sel.name : opt.dataset.value;
+        container._selectedValue = opt.dataset.value;
+        dropdown.classList.remove('open');
+      }
+    });
+    input.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape') { dropdown.classList.remove('open'); input.blur(); }
+      if (e.key === 'Enter') {
+        const hl = dropdown.querySelector('.search-select-option.highlighted') || dropdown.querySelector('.search-select-option');
+        if (hl && dropdown.classList.contains('open')) {
+          e.preventDefault();
+          const sel = options.find(o => o.id === hl.dataset.value);
+          input.value = sel ? sel.name : hl.dataset.value;
+          container._selectedValue = hl.dataset.value;
+          dropdown.classList.remove('open');
+        }
+      }
+      if (e.key === 'ArrowDown' || e.key === 'ArrowUp') {
+        e.preventDefault();
+        const opts = [...dropdown.querySelectorAll('.search-select-option')];
+        if (!opts.length) return;
+        const cur = dropdown.querySelector('.search-select-option.highlighted');
+        let idx = cur ? opts.indexOf(cur) : -1;
+        if (cur) cur.classList.remove('highlighted');
+        idx = e.key === 'ArrowDown' ? (idx + 1) % opts.length : (idx - 1 + opts.length) % opts.length;
+        opts[idx].classList.add('highlighted');
+        opts[idx].scrollIntoView({ block: 'nearest' });
+      }
+    });
+  }
+
   document.addEventListener('click', (e) => {
     document.querySelectorAll('.search-select-dropdown.open').forEach(dd => {
       if (!dd.closest('.search-select').contains(e.target)) dd.classList.remove('open');
@@ -404,6 +593,64 @@
   }
 
   // ── Render exercise list ──
+  // ── Render instruction text with inline editable params ──
+  function escapeHtml(str) {
+    return str.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+  }
+
+  function renderParamWheel(defaultValue, currentValue, exerciseName, paramIndex) {
+    const safeEx = exerciseName.replace(/"/g, '&quot;');
+    // Split value into number and non-number parts
+    const defaultParts = defaultValue.split(/(\d+)/);
+    const currentParts = currentValue.split(/(\d+)/);
+
+    let html = `<span class="param-wheel" data-exercise="${safeEx}" data-index="${paramIndex}" data-default="${escapeHtml(defaultValue)}">`;
+    let numIdx = 0;
+    for (let i = 0; i < defaultParts.length; i++) {
+      if (/^\d+$/.test(defaultParts[i])) {
+        const num = (currentParts[i] && /^\d+$/.test(currentParts[i])) ? currentParts[i] : defaultParts[i];
+        html += `<span class="param-number" data-num-index="${numIdx}">${num}</span>`;
+        numIdx++;
+      } else {
+        html += escapeHtml(defaultParts[i]);
+      }
+    }
+    html += '</span>';
+    return html;
+  }
+
+  function renderInstructionWithParams(exerciseName) {
+    const template = INSTRUCTION_TEMPLATES[exerciseName];
+    if (!template) return null;
+
+    const patientParams = getPatientParams(currentPatientId);
+    const overrides = (patientParams[exerciseName]) || {};
+
+    const regex = /\{\{(.+?)\}\}/g;
+    let result = '';
+    let lastIndex = 0;
+    let paramIndex = 0;
+    let match;
+
+    while ((match = regex.exec(template)) !== null) {
+      const textBefore = template.slice(lastIndex, match.index);
+      result += escapeHtml(textBefore).replace(/\n/g, '<br>');
+
+      const defaultValue = match[1];
+      const currentValue = overrides[String(paramIndex)] || defaultValue;
+      result += renderParamWheel(defaultValue, currentValue, exerciseName, paramIndex);
+
+      lastIndex = match.index + match[0].length;
+      paramIndex++;
+    }
+
+    if (lastIndex < template.length) {
+      result += escapeHtml(template.slice(lastIndex)).replace(/\n/g, '<br>');
+    }
+
+    return result;
+  }
+
   function renderPatientProgram() {
     const instructions = getInstructions();
     const container = document.getElementById('exercise-list');
@@ -423,6 +670,18 @@
     container.innerHTML = currentExercises.map(ex => {
       const instruction = instructions[ex] || '';
       const safeEx = ex.replace(/'/g, "\\'");
+
+      // Try to render with editable params; fall back to plain text
+      const paramHtml = renderInstructionWithParams(ex);
+      let instructionHtml;
+      if (paramHtml) {
+        instructionHtml = paramHtml;
+      } else if (instruction) {
+        instructionHtml = `<span class="whitespace-pre-line">${instruction}</span>`;
+      } else {
+        instructionHtml = '<span class="text-slate-400 italic">No instructions written yet. Add them in the Exercise Library.</span>';
+      }
+
       return `
         <div class="exercise-card border border-slate-100 rounded-xl mb-3 overflow-hidden">
           <div class="flex items-center justify-between p-4">
@@ -449,7 +708,7 @@
             <div class="px-4 pb-4">
               <div class="bg-slate-50 rounded-xl p-4">
                 <div class="text-xs font-bold uppercase tracking-widest text-slate-400 mb-2">Instructions</div>
-                <div class="text-sm text-navy leading-relaxed whitespace-pre-line">${instruction || '<span class="text-slate-400 italic">No instructions written yet. Add them in the Exercise Library.</span>'}</div>
+                <div class="text-sm text-navy leading-relaxed">${instructionHtml}</div>
               </div>
             </div>
           </div>
@@ -489,6 +748,7 @@
       btn.classList.remove('opacity-50', 'cursor-not-allowed');
       btn.disabled = false;
     }
+    createPathologySearchSelect('search-select-pathology');
   }
 
   // ── Add / Remove ──
@@ -500,6 +760,50 @@
       currentExercises.push(exercise);
       savePatientExercises(currentPatientId, currentExercises);
     }
+    renderPatientProgram();
+  }
+
+  function addPathologyExercises() {
+    const pathologyId = getSearchSelectValue('search-select-pathology');
+    if (!pathologyId) return;
+
+    const assignments = getAssignments();
+    const pathologyExercises = assignments[pathologyId] || [];
+    if (pathologyExercises.length === 0) return;
+
+    const pathology = getPathologyList().find(p => p.id === pathologyId);
+    const pathologyName = pathology ? pathology.name : pathologyId;
+
+    const newExercises = pathologyExercises.filter(ex => !currentExercises.includes(ex));
+    const skippedCount = pathologyExercises.length - newExercises.length;
+
+    newExercises.forEach(ex => currentExercises.push(ex));
+    if (newExercises.length > 0) {
+      savePatientExercises(currentPatientId, currentExercises);
+    }
+
+    // Show feedback
+    const feedbackEl = document.getElementById('pathology-add-feedback');
+    let msg = '';
+    if (newExercises.length > 0 && skippedCount === 0) {
+      msg = `Added ${newExercises.length} exercise${newExercises.length !== 1 ? 's' : ''} from "${pathologyName}"`;
+    } else if (newExercises.length > 0 && skippedCount > 0) {
+      msg = `Added ${newExercises.length} exercise${newExercises.length !== 1 ? 's' : ''} from "${pathologyName}" (${skippedCount} already assigned)`;
+    } else {
+      msg = `All exercises from "${pathologyName}" are already assigned`;
+    }
+    feedbackEl.textContent = msg;
+    feedbackEl.classList.remove('hidden');
+    setTimeout(() => feedbackEl.classList.add('hidden'), 4000);
+
+    // Clear pathology select
+    const container = document.getElementById('search-select-pathology');
+    if (container) {
+      container._selectedValue = '';
+      const input = document.getElementById('search-select-pathology-input');
+      if (input) input.value = '';
+    }
+
     renderPatientProgram();
   }
 
@@ -562,6 +866,55 @@
 
     currentExercises = initializePatientExercises(currentPatientId, currentPatient);
     renderPatientProgram();
+
+    // Scroll-wheel event delegation for number params
+    document.getElementById('exercise-list').addEventListener('wheel', (e) => {
+      const wheel = e.target.closest('.param-wheel');
+      if (!wheel) return;
+      e.preventDefault();
+
+      // Find the closest number to scroll, or the only one
+      let numEl = e.target.closest('.param-number');
+      if (!numEl) {
+        // Clicked on the unit text — find the nearest number in this wheel
+        const allNums = wheel.querySelectorAll('.param-number');
+        if (allNums.length === 1) {
+          numEl = allNums[0];
+        } else {
+          // Multiple numbers (e.g. "5 to 10") — pick the closest one
+          numEl = allNums[allNums.length - 1];
+        }
+      }
+      if (!numEl) return;
+
+      const currentNum = parseInt(numEl.textContent, 10);
+      if (isNaN(currentNum)) return;
+
+      const delta = e.deltaY < 0 ? 1 : -1;
+      const newNum = Math.max(1, currentNum + delta);
+      numEl.textContent = newNum;
+
+      // Visual flash on the whole wheel
+      wheel.classList.add(delta > 0 ? 'flash-up' : 'flash-down');
+      setTimeout(() => wheel.classList.remove('flash-up', 'flash-down'), 100);
+
+      // Reconstruct full value and save
+      const defaultVal = wheel.dataset.default;
+      const defaultParts = defaultVal.split(/(\d+)/);
+      const allNums = wheel.querySelectorAll('.param-number');
+      let reconstructed = '';
+      let numI = 0;
+      for (const part of defaultParts) {
+        if (/^\d+$/.test(part)) {
+          reconstructed += allNums[numI] ? allNums[numI].textContent : part;
+          numI++;
+        } else {
+          reconstructed += part;
+        }
+      }
+
+      savePatientParam(currentPatientId, wheel.dataset.exercise, wheel.dataset.index, reconstructed);
+    }, { passive: false });
   }
 
   initPage();

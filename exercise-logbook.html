@@ -80,6 +80,8 @@
     ::-webkit-scrollbar-thumb { background: #8ba5bc; border-radius: 3px; }
 
     /* Pathology Accordion */
+    .accordion-item { overflow: hidden; }
+    .accordion-item.open { overflow: visible; }
     .accordion-body {
       max-height: 0;
       overflow: hidden;
@@ -419,8 +421,360 @@
   function saveAssignments(data) {
     localStorage.setItem('pap_exercise_assignments', JSON.stringify(data));
   }
+  const DEFAULT_INSTRUCTIONS = {
+    'Patellar mobilisations': `Patellar Mobilisations
+
+For this exercise, please find a comfortable place to sit or lie down. You will need a yoga mat or a bed. Lie down on your back with your surgical leg extended and relaxed. Make sure your knee is fully supported and your muscles are relaxed.
+
+[... pause 15 seconds to get into position ...]
+
+You are now going to gently move your kneecap to prevent scar tissue from forming and to keep the joint mobile. This is very important after surgery.
+
+[... pause 5 seconds ...]
+
+First, locate your kneecap with both hands. Place your thumbs on either side of the kneecap and your fingers gently around it.
+
+[... pause 10 seconds ...]
+
+Now, gently push your kneecap upward, toward your hip. Use a slow, steady pressure. Do not force it. You should feel a gentle glide, not pain.
+
+[... pause 10 seconds ...]
+
+Now gently push your kneecap downward, toward your foot. Again, slow and steady. Let it glide naturally.
+
+[... pause 10 seconds ...]
+
+Repeat this up-and-down motion 10 times. Push up... hold for 2 seconds... push down... hold for 2 seconds. Begin now.
+
+[... pause 60 seconds ...]
+
+Well done. Now you will move your kneecap from side to side. Place your fingers on the outer edge and your thumb on the inner edge of the kneecap.
+
+[... pause 10 seconds ...]
+
+Gently push the kneecap inward, toward the other knee. Hold for 2 seconds.
+
+[... pause 5 seconds ...]
+
+Now push it gently outward, away from the other knee. Hold for 2 seconds.
+
+[... pause 5 seconds ...]
+
+Repeat this side-to-side motion 10 times. Begin now.
+
+[... pause 60 seconds ...]
+
+Excellent. You have completed the patellar mobilisations. Let your leg rest for a moment before moving on.
+
+[... pause 10 seconds ...]`,
+
+    'Heel slides with towel': `Heel Slides with Towel
+
+Lie down on your back with your surgical leg extended and relaxed. You will need a towel or a long belt. Loop the towel around the bottom of your foot on the surgical side. Hold one end of the towel in each hand. Make sure your heel is resting on a smooth surface. If you are on a mat, you can put a plastic bag or a sock under your heel to reduce friction.
+
+[... pause 15 seconds to get into position ...]
+
+You are now going to slowly bend your knee by sliding your heel toward your buttock. This exercise helps you regain the ability to bend your knee.
+
+[... pause 5 seconds ...]
+
+Slowly pull on the towel with both hands while letting your heel slide along the surface toward you. Your knee will bend naturally as the heel comes closer.
+
+[... pause 10 seconds ...]
+
+Slide only as far as you feel a comfortable stretch. You may feel some pressure around your knee, but it should not be painful. If you feel sharp pain, stop and reduce the range.
+
+[... pause 10 seconds ...]
+
+Hold this bent position for 5 seconds.
+
+[... pause 5 seconds ...]
+
+Now slowly slide your heel back to the starting position. Keep the movement controlled.
+
+[... pause 10 seconds ...]
+
+Repeat this 15 times. Slide your heel toward you... hold for 5 seconds... then slide back. Begin now.
+
+[... pause 2 minutes for 15 repetitions ...]
+
+Well done. Rest for a moment.
+
+[... pause 10 seconds ...]`,
+
+    'Seated assisted knee flexion/extension': `Seated Knee Extension
+
+For this exercise, sit on the edge of a sturdy chair or the side of your bed. Your feet should be flat on the floor, or your legs hanging over the edge. Keep your back straight and your hands resting on your thighs or holding the sides of the chair for support.
+
+[... pause 15 seconds to get into position ...]
+
+This exercise will help you regain the ability to straighten your knee.
+
+[... pause 5 seconds ...]
+
+Sit with your surgical leg hanging over the edge. Slowly straighten your knee by lifting your foot upward, as if kicking gently forward.
+
+[... pause 10 seconds ...]
+
+Straighten as much as you can. Hold at the top for 5 seconds. Then slowly lower your foot back down.
+
+[... pause 10 seconds ...]
+
+Repeat 15 times. Begin now.
+
+[... pause 2 minutes for 15 repetitions ...]
+
+Excellent work. Rest for a moment.
+
+[... pause 10 seconds ...]`,
+
+    'Prone hang / heel prop — extension stretches': `Prone Hang — Extension Stretches
+
+The goal of this exercise is to achieve full knee extension. You will need a bed or a couch. Lie down on your stomach with your surgical leg extended and relaxed.
+
+[... pause 15 seconds to get into position ...]
+
+Carefully position yourself so that your knees are at the edge of the bed, and your lower legs hang off the edge. Place a small rolled towel just above your kneecap on the thigh for comfort.
+
+[... pause 15 seconds ...]
+
+Let your lower legs relax completely and hang. Gravity will gently straighten your knee. Avoid contracting your muscles. Just let the legs hang.
+
+[... pause 10 seconds ...]
+
+Hold this position for 5 to 10 minutes. Breathe slowly and try to stay as relaxed as possible.
+
+[... pause 5 minutes ...]
+
+Well done. You can slowly bring your legs back onto the bed and roll onto your back to rest.
+
+[... pause 10 seconds ...]`,
+
+    'Standing gastroc stretch': `Standing Gastrocnemius Stretch
+
+For this exercise, you will need a wall or a sturdy surface to lean against. Stand facing the wall, about an arm's length away. Place both hands flat on the wall at shoulder height for support.
+
+[... pause 15 seconds to get into position ...]
+
+This stretch targets the larger calf muscle, the gastrocnemius, which helps with walking and knee mobility.
+
+[... pause 5 seconds ...]
+
+Step your surgical leg back, about 60 to 90 centimetres behind you. Keep this back leg straight with the heel firmly pressed into the floor. Your front knee should be slightly bent.
+
+[... pause 10 seconds ...]
+
+Now lean your body forward toward the wall, keeping your back heel down. You should feel a stretch in the calf of your back leg.
+
+[... pause 10 seconds ...]
+
+Hold this stretch for 30 seconds. Keep breathing normally. Do not bounce.
+
+[... pause 30 seconds ...]
+
+Now relax. Bring your foot back to the starting position.
+
+[... pause 10 seconds ...]
+
+Repeat this stretch 3 times. Step back again and hold for 30 seconds. Begin now.
+
+[... pause 30 seconds ...]
+
+And one more time. Step back, lean forward, and hold for 30 seconds.
+
+[... pause 30 seconds ...]
+
+Well done. Bring both feet together and stand comfortably.
+
+[... pause 10 seconds ...]`,
+
+    'Supine active hamstring stretch': `Supine Active Hamstring Stretch
+
+Please lie down on your back on your mat or bed. Keep both legs straight to start. You will not need any equipment for this version.
+
+[... pause 15 seconds to get into position ...]
+
+This stretch will help maintain flexibility in the back of your thigh, which is important for walking and knee function.
+
+[... pause 5 seconds ...]
+
+Bend the knee of your surgical leg and bring it toward your chest. Use your hands behind your thigh to keep the leg in this position. Slowly try to straighten your knee by extending your foot toward the ceiling.
+
+[... pause 10 seconds ...]
+
+Use only your own muscle strength to straighten the leg. Do not use your hands for assistance. Straighten as much as you can.
+
+[... pause 10 seconds ...]
+
+You should feel a stretch along the back of your thigh and into your buttocks. Hold this position for 15 to 30 seconds.
+
+[... pause 30 seconds ...]
+
+Now slowly bend your knee again and lower your leg back down.
+
+[... pause 10 seconds ...]
+
+Repeat this 5 times. Lift, straighten, hold for 15 to 30 seconds, and lower. Begin now.
+
+[... pause 3 minutes for 5 repetitions ...]
+
+Well done. Rest your legs.
+
+[... pause 10 seconds ...]`,
+
+    'Straight leg raise': `Straight Leg Raise
+
+Important: Only perform this exercise if you can fully straighten your knee without any lag. This means when you tighten your thigh, your knee should go completely straight. If it does not, skip this exercise.
+
+[... pause 15 seconds to get into position ...]
+
+Please lie down on your back on your mat or bed. Keep both legs straight to start. You will not need any equipment for this version. Bend your non-surgical leg so the foot is flat on the surface. Keep your surgical leg straight.
+
+[... pause 10 seconds ...]
+
+First, tighten the quadriceps on your surgical leg, pressing the back of your knee flat into the surface. Lock your knee completely straight.
+
+[... pause 10 seconds ...]
+
+Now, keeping the knee locked straight, slowly lift your entire surgical leg off the surface. Raise it to the height of the other knee, approximately 30 to 45 degrees.
+
+[... pause 10 seconds ...]
+
+Hold at the top for 5 seconds.
+
+[... pause 5 seconds ...]
+
+Slowly lower your leg back down. Do not let it drop. Control the movement all the way down.
+
+[... pause 10 seconds ...]
+
+Repeat this 10 times. Tighten, lift, hold for 5 seconds, and lower slowly. Begin now.
+
+[... pause 2 minutes for 10 repetitions ...]
+
+Excellent. Rest your leg.
+
+[... pause 10 seconds ...]`,
+
+    'Hip abduction': `Hip Abduction
+
+Please lie down on your back on your mat or bed. Roll onto your non-surgical side so you are lying on your side. You can place a pillow under your head for comfort. Keep your bottom leg slightly bent for stability. Your surgical leg should be on top, straight.
+
+[... pause 15 seconds to get into position ...]
+
+This exercise strengthens the muscles on the outside of your hip, which are important for balance and walking.
+
+[... pause 5 seconds ...]
+
+Keep your surgical leg straight and your toes pointing forward, not toward the ceiling.
+
+[... pause 10 seconds ...]
+
+Slowly lift your top leg upward, away from the bottom leg. Raise it about 30 to 45 degrees. Keep your body still and avoid rolling backward.
+
+[... pause 10 seconds ...]
+
+Hold at the top for 3 seconds.
+
+[... pause 5 seconds ...]
+
+Slowly lower your leg back down.
+
+[... pause 5 seconds ...]
+
+Repeat this 15 times. Lift, hold, and lower. Begin now.
+
+[... pause 2 minutes for 15 repetitions ...]
+
+Well done. Roll back onto your back.
+
+[... pause 10 seconds ...]`,
+
+    'Multi-angle isometrics — 90° and 60° knee extension': `Multi-Angle Isometrics
+
+Sit on a sturdy chair with your feet flat on the floor. You will need a wall in front of you or another fixed surface that your foot can press against. You can use a pillow between your foot and the wall for comfort.
+
+[... pause 15 seconds to get into position ...]
+
+This exercise builds quadriceps strength at specific angles without moving the joint. This is called an isometric contraction. It is safe and effective after surgery.
+
+[... pause 5 seconds ...]
+
+First, at 90 degrees. Sit with your knee bent at a right angle, your foot flat on the floor. Place your foot against the wall.
+
+[... pause 10 seconds ...]
+
+Now push your foot forward as if trying to straighten your knee, but do not let the knee actually move. The wall provides the resistance. Push hard for 10 seconds.
+
+[... pause 10 seconds ...]
+
+Relax for 10 seconds.
+
+[... pause 10 seconds ...]
+
+Repeat 10 times at this 90-degree angle. Push for 10 seconds, rest for 10 seconds. Begin now.
+
+[... pause 3 minutes for 10 repetitions ...]
+
+Now adjust your position to 60 degrees. Extend your leg slightly forward so your knee is less bent, about two-thirds of the way to straight. You may need to scoot your chair slightly back from the wall.
+
+[... pause 10 seconds ...]
+
+Again, push forward against the wall or your other leg. Push for 10 seconds, rest for 10 seconds. Repeat 10 times. Begin now.
+
+[... pause 3 minutes for 10 repetitions ...]
+
+Excellent work. Relax your legs.
+
+[... pause 10 seconds ...]`,
+
+    'Calf raises': `Calf Raises
+
+Hold onto a sturdy surface such as a kitchen counter, a table, or the back of a heavy chair for balance. Stand with your feet shoulder-width apart and your weight evenly distributed on both legs.
+
+[... pause 15 seconds to get into position ...]
+
+This exercise strengthens your calf muscles, which are essential for walking, climbing stairs, and overall stability.
+
+[... pause 5 seconds ...]
+
+Slowly rise up onto your toes, lifting both heels off the ground. Take about 2 seconds to rise up.
+
+[... pause 10 seconds ...]
+
+Hold at the top for 2 seconds.
+
+[... pause 5 seconds ...]
+
+Now slowly lower your heels back down over 4 seconds. Control the descent.
+
+[... pause 10 seconds ...]
+
+Repeat this 12 times. Rise up in 2 seconds, hold for 2 seconds, lower in 4 seconds. Begin now.
+
+[... pause 2 minutes for 12 repetitions ...]
+
+If that felt manageable, you may do a second set of 12 after a short rest.
+
+[... pause 15 seconds ...]
+
+Excellent work. Relax your legs.
+
+[... pause 10 seconds ...]`,
+  };
+
   function getInstructions() {
-    return JSON.parse(localStorage.getItem('pap_exercise_instructions') || '{}');
+    const stored = JSON.parse(localStorage.getItem('pap_exercise_instructions') || '{}');
+    // Merge in any default instructions that aren't already saved
+    let updated = false;
+    for (const [name, text] of Object.entries(DEFAULT_INSTRUCTIONS)) {
+      if (!stored[name]) {
+        stored[name] = text;
+        updated = true;
+      }
+    }
+    if (updated) localStorage.setItem('pap_exercise_instructions', JSON.stringify(stored));
+    return stored;
   }
   function saveInstructionsStore(data) {
     localStorage.setItem('pap_exercise_instructions', JSON.stringify(data));
@@ -433,15 +787,29 @@
 
   // ── Custom exercises ──
   const DEFAULT_EXERCISES = [
-    'Patellar mobilizations', 'Seated knee flexions', 'Seated knee extensions',
-    'Standing gastroc stretch', 'Standing soleo stretch', 'Calf raises',
-    'Straight leg raises', 'Hip abductions'
+    'Patellar mobilisations',
+    'Heel slides with towel',
+    'Seated assisted knee flexion/extension',
+    'Prone hang / heel prop — extension stretches',
+    'Standing gastroc stretch',
+    'Supine active hamstring stretch',
+    'Straight leg raise',
+    'Hip abduction',
+    'Multi-angle isometrics — 90° and 60° knee extension',
+    'Calf raises',
   ];
   function getCustomExercises() {
     const stored = JSON.parse(localStorage.getItem('pap_custom_exercises') || '[]');
     if (stored.length === 0) {
       localStorage.setItem('pap_custom_exercises', JSON.stringify(DEFAULT_EXERCISES));
       return [...DEFAULT_EXERCISES];
+    }
+    // Ensure any new defaults are merged in
+    const merged = new Set([...stored, ...DEFAULT_EXERCISES]);
+    if (merged.size > stored.length) {
+      const updated = [...merged];
+      localStorage.setItem('pap_custom_exercises', JSON.stringify(updated));
+      return updated;
     }
     return stored;
   }
@@ -608,7 +976,7 @@
         : `<span class="text-slate-400 text-xs">No exercises assigned yet.</span>`;
 
       return `
-        <div class="accordion-item bg-white rounded-2xl shadow-card overflow-hidden relative" data-id="${path.id}">
+        <div class="accordion-item bg-white rounded-2xl shadow-card relative" data-id="${path.id}">
           <div class="absolute top-0 left-0 right-0 h-[3px]"
                style="background:linear-gradient(90deg,${path.accentFrom},${path.accentTo})"></div>
 
