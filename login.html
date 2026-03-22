@@ -229,11 +229,11 @@
       const tomorrowStr = tomorrow.toISOString().slice(0, 10);
 
       const patients = [
-        { id:'pat_seed_1', name:'Maria Garcia', email:'maria.garcia@email.com', phone:'(555) 234-5678', pathology:'Chronic Disease Management', notes:'Diabetes Type 2, currently on metformin. Weekly check-in calls preferred.', scheduledDate: todayStr+'T10:00', createdAt: new Date().toISOString() },
-        { id:'pat_seed_2', name:'James Wilson', email:'james.w@email.com', phone:'(555) 345-6789', pathology:'Post-Surgical Recovery', notes:'Knee replacement 2 weeks ago. Physical therapy adherence tracking.', scheduledDate: todayStr+'T14:30', createdAt: new Date().toISOString() },
-        { id:'pat_seed_3', name:'Sarah Chen', email:'sarah.chen@email.com', phone:'(555) 456-7890', pathology:'Mental Health & Behavioral', notes:'Anxiety management program. Prefers afternoon calls.', scheduledDate: todayStr+'T16:00', createdAt: new Date().toISOString() },
-        { id:'pat_seed_4', name:'Robert Johnson', email:'r.johnson@email.com', phone:'(555) 567-8901', pathology:'Respiratory & Pulmonary', notes:'COPD management. Inhaler technique follow-up needed.', scheduledDate: tomorrowStr+'T09:00', createdAt: new Date().toISOString() },
-        { id:'pat_seed_5', name:'Linda Thompson', email:'linda.t@email.com', phone:'(555) 678-9012', pathology:'Senior & Geriatric Care', notes:'Multiple medications. Caregiver (daughter) involved in calls.', scheduledDate: tomorrowStr+'T11:00', createdAt: new Date().toISOString() }
+        { id:'pat_seed_1', name:'Maria Garcia', email:'maria.garcia@email.com', phone:'(555) 234-5678', pathology:'Chronic Disease Management', notes:'Diabetes Type 2, currently on metformin. Weekly check-in calls preferred.', scheduledDates: [todayStr+'T10:00'], createdAt: new Date().toISOString() },
+        { id:'pat_seed_2', name:'James Wilson', email:'james.w@email.com', phone:'(555) 345-6789', pathology:'Post-Surgical Recovery', notes:'Knee replacement 2 weeks ago. Physical therapy adherence tracking.', scheduledDates: [todayStr+'T14:30'], createdAt: new Date().toISOString() },
+        { id:'pat_seed_3', name:'Sarah Chen', email:'sarah.chen@email.com', phone:'(555) 456-7890', pathology:'Mental Health & Behavioral', notes:'Anxiety management program. Prefers afternoon calls.', scheduledDates: [todayStr+'T16:00'], createdAt: new Date().toISOString() },
+        { id:'pat_seed_4', name:'Robert Johnson', email:'r.johnson@email.com', phone:'(555) 567-8901', pathology:'Respiratory & Pulmonary', notes:'COPD management. Inhaler technique follow-up needed.', scheduledDates: [tomorrowStr+'T09:00'], createdAt: new Date().toISOString() },
+        { id:'pat_seed_5', name:'Linda Thompson', email:'linda.t@email.com', phone:'(555) 678-9012', pathology:'Senior & Geriatric Care', notes:'Multiple medications. Caregiver (daughter) involved in calls.', scheduledDates: [tomorrowStr+'T11:00'], createdAt: new Date().toISOString() }
       ];
       localStorage.setItem('pap_patients', JSON.stringify(patients));
     }

@@ -372,10 +372,26 @@
         <label class="block text-xs font-semibold mb-1.5" style="color:#0d1f3c">Notes</label>
         <textarea id="new-notes" rows="3" placeholder="Additional notes about this patient..." class="dash-input" style="resize:none"></textarea>
       </div>
-      <!-- Scheduled Date/Time -->
+      <!-- Scheduled Dates/Times -->
       <div class="mb-6">
-        <label class="block text-xs font-semibold mb-1.5" style="color:#0d1f3c">Scheduled Call Date & Time</label>
-        <input type="datetime-local" id="new-scheduled" class="dash-input" />
+        <label class="block text-xs font-semibold mb-1.5" style="color:#0d1f3c">Scheduled Call Dates & Times</label>
+        <div id="new-scheduled-list" class="space-y-2">
+          <div class="flex gap-2 items-center scheduled-row">
+            <input type="datetime-local" class="dash-input flex-1 scheduled-input" />
+            <button type="button" onclick="this.closest('.scheduled-row').remove()"
+                    class="w-8 h-8 rounded-lg flex items-center justify-center text-slate-300 hover:text-red-500 hover:bg-red-50 flex-shrink-0"
+                    style="transition:color 0.15s,background 0.15s" title="Remove">
+              <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/>
+              </svg>
+            </button>
+          </div>
+        </div>
+        <button type="button" onclick="addScheduledRow('new-scheduled-list')"
+                class="mt-2 inline-flex items-center gap-1 text-xs font-semibold btn-press"
+                style="color:#0a8f8f;transition:color 0.15s">
+          + Add another call
+        </button>
       </div>
       <!-- Action buttons -->
       <div class="flex gap-3">
@@ -408,7 +424,18 @@
 
   // ── Data helpers ──
   function getPatients() {
-    return JSON.parse(localStorage.getItem('pap_patients') || '[]');
+    const patients = JSON.parse(localStorage.getItem('pap_patients') || '[]');
+    // Migrate old scheduledDate (string) → scheduledDates (array)
+    let migrated = false;
+    patients.forEach(p => {
+      if (!p.scheduledDates) {
+        p.scheduledDates = p.scheduledDate ? [p.scheduledDate] : [];
+        delete p.scheduledDate;
+        migrated = true;
+      }
+    });
+    if (migrated) localStorage.setItem('pap_patients', JSON.stringify(patients));
+    return patients;
   }
   function savePatients(patients) {
     localStorage.setItem('pap_patients', JSON.stringify(patients));
@@ -422,11 +449,11 @@
     const tomorrowStr = tomorrow.toISOString().slice(0, 10);
 
     const patients = [
-      { id:'pat_seed_1', name:'Maria Garcia', email:'maria.garcia@email.com', phone:'(555) 234-5678', pathology:'Chronic Disease Management', notes:'Diabetes Type 2, currently on metformin. Weekly check-in calls preferred.', scheduledDate: todayStr+'T10:00', createdAt: new Date().toISOString() },
-      { id:'pat_seed_2', name:'James Wilson', email:'james.w@email.com', phone:'(555) 345-6789', pathology:'Post-Surgical Recovery', notes:'Knee replacement 2 weeks ago. Physical therapy adherence tracking.', scheduledDate: todayStr+'T14:30', createdAt: new Date().toISOString() },
-      { id:'pat_seed_3', name:'Sarah Chen', email:'sarah.chen@email.com', phone:'(555) 456-7890', pathology:'Mental Health & Behavioral', notes:'Anxiety management program. Prefers afternoon calls.', scheduledDate: todayStr+'T16:00', createdAt: new Date().toISOString() },
-      { id:'pat_seed_4', name:'Robert Johnson', email:'r.johnson@email.com', phone:'(555) 567-8901', pathology:'Respiratory & Pulmonary', notes:'COPD management. Inhaler technique follow-up needed.', scheduledDate: tomorrowStr+'T09:00', createdAt: new Date().toISOString() },
-      { id:'pat_seed_5', name:'Linda Thompson', email:'linda.t@email.com', phone:'(555) 678-9012', pathology:'Senior & Geriatric Care', notes:'Multiple medications. Caregiver (daughter) involved in calls.', scheduledDate: tomorrowStr+'T11:00', createdAt: new Date().toISOString() }
+      { id:'pat_seed_1', name:'Maria Garcia', email:'maria.garcia@email.com', phone:'(555) 234-5678', pathology:'Chronic Disease Management', notes:'Diabetes Type 2, currently on metformin. Weekly check-in calls preferred.', scheduledDates: [todayStr+'T10:00'], createdAt: new Date().toISOString() },
+      { id:'pat_seed_2', name:'James Wilson', email:'james.w@email.com', phone:'(555) 345-6789', pathology:'Post-Surgical Recovery', notes:'Knee replacement 2 weeks ago. Physical therapy adherence tracking.', scheduledDates: [todayStr+'T14:30'], createdAt: new Date().toISOString() },
+      { id:'pat_seed_3', name:'Sarah Chen', email:'sarah.chen@email.com', phone:'(555) 456-7890', pathology:'Mental Health & Behavioral', notes:'Anxiety management program. Prefers afternoon calls.', scheduledDates: [todayStr+'T16:00'], createdAt: new Date().toISOString() },
+      { id:'pat_seed_4', name:'Robert Johnson', email:'r.johnson@email.com', phone:'(555) 567-8901', pathology:'Respiratory & Pulmonary', notes:'COPD management. Inhaler technique follow-up needed.', scheduledDates: [tomorrowStr+'T09:00'], createdAt: new Date().toISOString() },
+      { id:'pat_seed_5', name:'Linda Thompson', email:'linda.t@email.com', phone:'(555) 678-9012', pathology:'Senior & Geriatric Care', notes:'Multiple medications. Caregiver (daughter) involved in calls.', scheduledDates: [tomorrowStr+'T11:00'], createdAt: new Date().toISOString() }
     ];
     savePatients(patients);
   }
@@ -494,11 +521,14 @@
     const body = document.getElementById('detail-body');
     const initial = p.name.charAt(0).toUpperCase();
 
+    const dates = p.scheduledDates || [];
     let scheduledDisplay = 'Not scheduled';
-    if (p.scheduledDate) {
-      const d = new Date(p.scheduledDate);
-      scheduledDisplay = d.toLocaleDateString('en-US', { weekday:'short', month:'short', day:'numeric', year:'numeric' })
-        + ' at ' + d.toLocaleTimeString('en-US', { hour:'numeric', minute:'2-digit' });
+    if (dates.length > 0) {
+      scheduledDisplay = dates.map(dt => {
+        const d = new Date(dt);
+        return d.toLocaleDateString('en-US', { weekday:'short', month:'short', day:'numeric', year:'numeric' })
+          + ' at ' + d.toLocaleTimeString('en-US', { hour:'numeric', minute:'2-digit' });
+      }).join('<br>');
     }
 
     body.innerHTML = `
@@ -541,7 +571,7 @@
         <div class="flex gap-4 mb-5">
           <div class="w-9 h-9 rounded-lg flex items-center justify-center bg-teal-50 text-teal flex-shrink-0 text-base">📅</div>
           <div>
-            <div class="text-xs font-bold uppercase tracking-widest text-slate-400 mb-1">Scheduled Call</div>
+            <div class="text-xs font-bold uppercase tracking-widest text-slate-400 mb-1">Scheduled Call${dates.length > 1 ? 's' : ''}</div>
             <div class="font-medium text-navy text-sm">${scheduledDisplay}</div>
           </div>
         </div>
@@ -619,8 +649,25 @@
           <textarea id="edit-notes" rows="3" class="dash-input" style="resize:none">${p.notes || ''}</textarea>
         </div>
         <div class="mb-6">
-          <label class="block text-xs font-semibold mb-1.5" style="color:#0d1f3c">Scheduled Call Date & Time</label>
-          <input type="datetime-local" id="edit-scheduled" value="${p.scheduledDate || ''}" class="dash-input" />
+          <label class="block text-xs font-semibold mb-1.5" style="color:#0d1f3c">Scheduled Call Dates & Times</label>
+          <div id="edit-scheduled-list" class="space-y-2">
+            ${(p.scheduledDates && p.scheduledDates.length > 0 ? p.scheduledDates : ['']).map(dt => `
+              <div class="flex gap-2 items-center scheduled-row">
+                <input type="datetime-local" class="dash-input flex-1 scheduled-input" value="${dt}" />
+                <button type="button" onclick="this.closest('.scheduled-row').remove()"
+                        class="w-8 h-8 rounded-lg flex items-center justify-center text-slate-300 hover:text-red-500 hover:bg-red-50 flex-shrink-0"
+                        style="transition:color 0.15s,background 0.15s" title="Remove">
+                  <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/>
+                  </svg>
+                </button>
+              </div>`).join('')}
+          </div>
+          <button type="button" onclick="addScheduledRow('edit-scheduled-list')"
+                  class="mt-2 inline-flex items-center gap-1 text-xs font-semibold btn-press"
+                  style="color:#0a8f8f;transition:color 0.15s">
+            + Add another call
+          </button>
         </div>
         <div class="flex gap-3">
           <button type="button" onclick="showPatientDetail(currentDetailIndex)"
@@ -653,7 +700,8 @@
     p.phone = document.getElementById('edit-phone').value.trim();
     p.pathology = document.getElementById('edit-pathology').value;
     p.notes = document.getElementById('edit-notes').value.trim();
-    p.scheduledDate = document.getElementById('edit-scheduled').value;
+    p.scheduledDates = [...document.querySelectorAll('#edit-scheduled-list .scheduled-input')]
+      .map(i => i.value).filter(v => v);
 
     savePatients(patients);
     renderPatientList(document.getElementById('patient-search').value);
@@ -703,6 +751,23 @@
     document.body.style.overflow = '';
   }
 
+  // ── Scheduled dates helper ──
+  function addScheduledRow(containerId) {
+    const container = document.getElementById(containerId);
+    const row = document.createElement('div');
+    row.className = 'flex gap-2 items-center scheduled-row';
+    row.innerHTML = `
+      <input type="datetime-local" class="dash-input flex-1 scheduled-input" />
+      <button type="button" onclick="this.closest('.scheduled-row').remove()"
+              class="w-8 h-8 rounded-lg flex items-center justify-center text-slate-300 hover:text-red-500 hover:bg-red-50 flex-shrink-0"
+              style="transition:color 0.15s,background 0.15s" title="Remove">
+        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/>
+        </svg>
+      </button>`;
+    container.appendChild(row);
+  }
+
   // ── Add patient modal ──
   function openAddPatientModal() {
     document.getElementById('modal-backdrop').classList.remove('hidden');
@@ -726,7 +791,18 @@
       document.getElementById('new-phone').value = '';
       document.getElementById('new-pathology').value = '';
       document.getElementById('new-notes').value = '';
-      document.getElementById('new-scheduled').value = '';
+      // Reset scheduled list to single empty row
+      document.getElementById('new-scheduled-list').innerHTML = `
+        <div class="flex gap-2 items-center scheduled-row">
+          <input type="datetime-local" class="dash-input flex-1 scheduled-input" />
+          <button type="button" onclick="this.closest('.scheduled-row').remove()"
+                  class="w-8 h-8 rounded-lg flex items-center justify-center text-slate-300 hover:text-red-500 hover:bg-red-50 flex-shrink-0"
+                  style="transition:color 0.15s,background 0.15s" title="Remove">
+            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/>
+            </svg>
+          </button>
+        </div>`;
     }, 300);
   }
 
@@ -735,6 +811,9 @@
     const name = document.getElementById('new-name').value.trim();
     if (!name) return;
 
+    const scheduledDates = [...document.querySelectorAll('#new-scheduled-list .scheduled-input')]
+      .map(i => i.value).filter(v => v);
+
     const patient = {
       id: 'pat_' + Date.now(),
       name: name,
@@ -742,7 +821,7 @@
       phone: document.getElementById('new-phone').value.trim(),
       pathology: document.getElementById('new-pathology').value,
       notes: document.getElementById('new-notes').value.trim(),
-      scheduledDate: document.getElementById('new-scheduled').value,
+      scheduledDates: scheduledDates,
       createdAt: new Date().toISOString()
     };
 
@@ -769,23 +848,23 @@
           </tr>
         </thead>
         <tbody>
-          ${calls.map(p => {
-            const initial = p.name.charAt(0).toUpperCase();
-            const time = new Date(p.scheduledDate).toLocaleTimeString('en-US', { hour:'numeric', minute:'2-digit' });
+          ${calls.map(c => {
+            const initial = c.name.charAt(0).toUpperCase();
+            const time = new Date(c.callDate).toLocaleTimeString('en-US', { hour:'numeric', minute:'2-digit' });
             return `
               <tr class="table-row border-b border-slate-50">
                 <td class="py-4 pr-4">
                   <div class="flex items-center gap-3">
                     <div class="w-8 h-8 rounded-full flex items-center justify-center text-white text-xs font-bold flex-shrink-0"
                          style="background:linear-gradient(135deg,#0d1f3c,#0a8f8f)">${initial}</div>
-                    <span class="font-medium text-navy text-sm">${p.name}</span>
+                    <span class="font-medium text-navy text-sm">${c.name}</span>
                   </div>
                 </td>
                 <td class="py-4 pr-4">
                   <span class="text-sm text-slate-600 font-medium">${time}</span>
                 </td>
                 <td class="py-4">
-                  <span class="text-sm text-slate-500">${p.phone || '—'}</span>
+                  <span class="text-sm text-slate-500">${c.phone || '—'}</span>
                 </td>
               </tr>`;
           }).join('')}
@@ -797,21 +876,29 @@
     const patients = getPatients();
     const now = new Date();
     const today = now.toISOString().slice(0, 10);
-    const calls = patients
-      .filter(p => p.scheduledDate && p.scheduledDate.startsWith(today))
-      .sort((a, b) => a.scheduledDate.localeCompare(b.scheduledDate));
 
-    const upcoming = calls.filter(p => new Date(p.scheduledDate) > now);
-    const completed = calls.filter(p => new Date(p.scheduledDate) <= now);
+    // Flatten: each patient × each scheduled date = one call entry
+    const allCalls = [];
+    patients.forEach(p => {
+      (p.scheduledDates || []).forEach(dt => {
+        if (dt.startsWith(today)) {
+          allCalls.push({ name: p.name, phone: p.phone, callDate: dt });
+        }
+      });
+    });
+    allCalls.sort((a, b) => a.callDate.localeCompare(b.callDate));
 
-    document.getElementById('calls-count').textContent = calls.length;
+    const upcoming = allCalls.filter(c => new Date(c.callDate) > now);
+    const completed = allCalls.filter(c => new Date(c.callDate) <= now);
+
+    document.getElementById('calls-count').textContent = allCalls.length;
 
     const todayDisplay = now.toLocaleDateString('en-US', { weekday:'long', month:'short', day:'numeric' });
     document.getElementById('today-date').textContent = todayDisplay;
 
     const container = document.getElementById('calls-container');
 
-    if (calls.length === 0) {
+    if (allCalls.length === 0) {
       container.innerHTML = `
         <div class="text-center py-12">
           <div class="text-4xl mb-4">📋</div>

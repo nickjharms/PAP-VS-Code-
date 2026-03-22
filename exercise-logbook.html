@@ -352,6 +352,16 @@
           + New Pathology
         </button>
       </div>
+      <!-- Pathology search bar -->
+      <div class="mb-4 flex-shrink-0">
+        <div class="relative">
+          <svg class="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
+          </svg>
+          <input type="text" id="pathology-search" placeholder="Search pathologies..."
+                 class="dash-input" style="padding-left:40px;font-size:13px" oninput="filterPathologies(this.value)" />
+        </div>
+      </div>
       <div class="space-y-4 overflow-y-auto flex-1" id="pathology-list">
         <!-- Populated by JS -->
       </div>
@@ -907,10 +917,15 @@ Excellent work. Relax your legs.
   // ── Accordion state ──
   const openAccordions = new Set();
   const openExerciseItems = new Set();
+  const editModeExercises = new Set();
 
   // ── Render Pathologies (Right Column) ──
-  function renderPathologies() {
-    const pathologies = getPathologyList();
+  function renderPathologies(filterText) {
+    const allPathologies = getPathologyList();
+    const filter = (filterText || '').toLowerCase();
+    const pathologies = filter
+      ? allPathologies.filter(p => p.name.toLowerCase().includes(filter))
+      : allPathologies;
     const assignments = getAssignments();
     const container = document.getElementById('pathology-list');
 
@@ -1030,7 +1045,7 @@ Excellent work. Relax your legs.
     }).join('');
 
     container.innerHTML = formHtml + cardsHtml;
-    document.getElementById('pathology-count').textContent = pathologies.length;
+    document.getElementById('pathology-count').textContent = allPathologies.length;
 
     // Restore open state
     document.querySelectorAll('.accordion-item').forEach(item => {
@@ -1085,14 +1100,14 @@ Excellent work. Relax your legs.
     document.getElementById('new-path-name').value = '';
     document.getElementById('new-path-emoji').value = '';
     errorEl.classList.add('hidden');
-    renderPathologies();
+    renderPathologies(getCurrentPathologyFilter());
   }
 
   function confirmDeletePathology(pathId, pathName) {
     if (confirm('Delete "' + pathName + '"? All exercise assignments for this pathology will be removed.')) {
       deletePathology(pathId);
       openAccordions.delete(pathId);
-      renderPathologies();
+      renderPathologies(getCurrentPathologyFilter());
       renderExerciseLibrary(document.getElementById('exercise-search').value.trim());
     }
   }
@@ -1125,8 +1140,15 @@ Excellent work. Relax your legs.
       const safeEx = ex.replace(/'/g, "\\'");
 
       const pathTags = pathsForEx.map(p => {
-        return `<span class="text-[11px] px-2 py-0.5 rounded-md font-medium"
-                      style="background:${p.accentFrom}15;color:${p.accentFrom}">${p.name}</span>`;
+        const safePathId = p.id.replace(/'/g, "\\'");
+        return `<span class="text-[11px] px-2 py-0.5 rounded-md font-medium inline-flex items-center gap-1"
+                      style="background:${p.accentFrom}15;color:${p.accentFrom}">
+                  ${p.name}
+                  <span onclick="event.stopPropagation(); removeExerciseFromPathology('${safeEx}', '${safePathId}')"
+                        class="cursor-pointer hover:opacity-60"
+                        style="font-size:10px;line-height:1;margin-left:2px"
+                        title="Remove from ${p.name}">✕</span>
+                </span>`;
       }).join('');
 
       const customBadge = '';
@@ -1151,7 +1173,6 @@ Excellent work. Relax your legs.
               <span class="text-sm font-medium text-navy tracking-snug">${ex}</span>${customBadge}
             </div>
             <div class="flex items-center gap-2">
-              <span class="text-[11px] text-slate-400">${pathsForEx.length > 0 ? pathsForEx.length + ' patholog' + (pathsForEx.length !== 1 ? 'ies' : 'y') : ''}</span>
               ${deleteIcon}
               <svg class="exercise-lib-chevron w-4 h-4 text-slate-400 flex-shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7"/>
@@ -1164,13 +1185,37 @@ Excellent work. Relax your legs.
               <div class="flex flex-wrap gap-1.5 mb-3">
                 ${pathTags || '<span class="text-[11px] text-slate-400">Not assigned to any pathology yet</span>'}
               </div>
+              ${editModeExercises.has(ex) ? `
               <textarea class="dash-input" rows="4"
                         placeholder="Write step-by-step instructions for this exercise..."
                         oninput="saveExerciseInstructions('${safeEx}', this.value)"
                         id="textarea-${slug}">${savedText}</textarea>
-              <div class="text-xs text-slate-400 mt-1.5 flex items-center gap-1" id="save-ind-${slug}">
-                ${savedText ? 'Saved' : 'No instructions yet'}
+              <div class="flex items-center justify-between mt-1.5">
+                <div class="text-xs text-slate-400 flex items-center gap-1" id="save-ind-${slug}">
+                  ${savedText ? 'Saved' : 'No instructions yet'}
+                </div>
+                <button onclick="toggleEditMode('${safeEx}')"
+                        class="text-xs font-semibold btn-press"
+                        style="color:#0a8f8f;transition:color 0.15s">
+                  Done
+                </button>
               </div>
+              ` : `
+              <div class="text-sm leading-relaxed mb-2 max-h-[200px] overflow-y-auto"
+                   style="white-space:pre-wrap;word-break:break-word;color:#334155">
+                ${savedText
+                  ? savedText.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
+                  : '<span class="text-slate-400 italic">No instructions yet</span>'}
+              </div>
+              <button onclick="toggleEditMode('${safeEx}')"
+                      class="inline-flex items-center gap-1 text-xs font-semibold btn-press"
+                      style="color:#0a8f8f;transition:color 0.15s">
+                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"/>
+                </svg>
+                Edit
+              </button>
+              `}
             </div>
           </div>
         </div>`;
@@ -1210,6 +1255,23 @@ Excellent work. Relax your legs.
     }
   }
 
+  // ── Edit Mode Toggle ──
+  function toggleEditMode(exerciseName) {
+    if (editModeExercises.has(exerciseName)) {
+      editModeExercises.delete(exerciseName);
+    } else {
+      editModeExercises.add(exerciseName);
+    }
+    renderExerciseLibrary(document.getElementById('exercise-search').value.trim());
+    if (editModeExercises.has(exerciseName)) {
+      const slug = slugify(exerciseName);
+      setTimeout(() => {
+        const ta = document.getElementById('textarea-' + slug);
+        if (ta) ta.focus();
+      }, 50);
+    }
+  }
+
   // ── New Exercise UI ──
   function toggleNewExerciseInput() {
     const form = document.getElementById('new-exercise-form');
@@ -1229,20 +1291,29 @@ Excellent work. Relax your legs.
     input.value = ''; errorEl.classList.add('hidden');
     document.getElementById('new-exercise-form').classList.add('hidden');
     renderExerciseLibrary(document.getElementById('exercise-search').value.trim());
-    renderPathologies();
+    renderPathologies(getCurrentPathologyFilter());
   }
 
   function confirmDeleteCustomExercise(exerciseName) {
     if (confirm('Delete "' + exerciseName + '"? This will also remove it from any patient programs and pathology assignments.')) {
       deleteCustomExercise(exerciseName);
       renderExerciseLibrary(document.getElementById('exercise-search').value.trim());
-      renderPathologies();
+      renderPathologies(getCurrentPathologyFilter());
     }
   }
 
   // ── Search ──
   function filterExercises(query) {
     renderExerciseLibrary(query.trim());
+  }
+
+  function getCurrentPathologyFilter() {
+    const el = document.getElementById('pathology-search');
+    return el ? el.value.trim() : '';
+  }
+
+  function filterPathologies(query) {
+    renderPathologies(query.trim());
   }
 
   // ── Save Instructions (Debounced) ──
@@ -1299,10 +1370,15 @@ Excellent work. Relax your legs.
       void item.offsetWidth;
       item.classList.add('highlighted');
 
-      // Focus textarea after accordion opens
+      // Enter edit mode and focus textarea after accordion opens
       setTimeout(() => {
-        const textarea = item.querySelector('textarea');
-        if (textarea) textarea.focus();
+        if (!editModeExercises.has(exerciseName)) {
+          toggleEditMode(exerciseName);
+        }
+        setTimeout(() => {
+          const textarea = item.querySelector('textarea');
+          if (textarea) textarea.focus();
+        }, 100);
       }, 400);
     }
   }
@@ -1318,7 +1394,7 @@ Excellent work. Relax your legs.
       assignments[pathId].push(exercise);
       saveAssignments(assignments);
     }
-    renderPathologies();
+    renderPathologies(getCurrentPathologyFilter());
     renderExerciseLibrary(document.getElementById('exercise-search').value.trim());
   }
 
@@ -1328,8 +1404,12 @@ Excellent work. Relax your legs.
       assignments[pathId] = assignments[pathId].filter(ex => ex !== exercise);
       saveAssignments(assignments);
     }
-    renderPathologies();
+    renderPathologies(getCurrentPathologyFilter());
     renderExerciseLibrary(document.getElementById('exercise-search').value.trim());
+  }
+
+  function removeExerciseFromPathology(exerciseName, pathId) {
+    removeExercise(pathId, exerciseName);
   }
 
   // ── Profile Popup ──
@@ -1361,7 +1441,7 @@ Excellent work. Relax your legs.
       document.getElementById('popup-user-initial').textContent = user.username.charAt(0).toUpperCase();
       document.getElementById('popup-user-name').textContent = user.username;
     }
-    renderPathologies();
+    renderPathologies(getCurrentPathologyFilter());
     renderExerciseLibrary();
   }
 
