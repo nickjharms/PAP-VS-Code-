@@ -838,19 +838,23 @@
   function renderCallsTable(calls, muted) {
     if (calls.length === 0) return '';
     const opacityClass = muted ? 'opacity-50' : '';
+    const showActions = !muted;
     return `
       <table class="w-full ${opacityClass}">
         <thead>
           <tr class="border-b border-slate-100">
             <th class="text-left text-xs font-bold uppercase tracking-widest text-slate-400 pb-3 pr-4">Patient Name</th>
             <th class="text-left text-xs font-bold uppercase tracking-widest text-slate-400 pb-3 pr-4">Scheduled Time</th>
-            <th class="text-left text-xs font-bold uppercase tracking-widest text-slate-400 pb-3">Phone Number</th>
+            <th class="text-left text-xs font-bold uppercase tracking-widest text-slate-400 pb-3${showActions ? ' pr-4' : ''}">Phone Number</th>
+            ${showActions ? '<th class="pb-3 w-20"></th>' : ''}
           </tr>
         </thead>
         <tbody>
           ${calls.map(c => {
             const initial = c.name.charAt(0).toUpperCase();
             const time = new Date(c.callDate).toLocaleTimeString('en-US', { hour:'numeric', minute:'2-digit' });
+            const safeId = (c.patientId || '').replace(/'/g, "\\'");
+            const safeDt = (c.scheduledDate || '').replace(/'/g, "\\'");
             return `
               <tr class="table-row border-b border-slate-50">
                 <td class="py-4 pr-4">
@@ -863,13 +867,178 @@
                 <td class="py-4 pr-4">
                   <span class="text-sm text-slate-600 font-medium">${time}</span>
                 </td>
-                <td class="py-4">
+                <td class="py-4${showActions ? ' pr-4' : ''}">
                   <span class="text-sm text-slate-500">${c.phone || '—'}</span>
                 </td>
+                ${showActions ? `
+                <td class="py-4">
+                  <div class="flex items-center gap-1 justify-end">
+                    <button onclick="openRescheduleModal('${safeId}', '${safeDt}')"
+                            class="w-7 h-7 rounded-lg flex items-center justify-center text-slate-300 hover:text-teal-600 hover:bg-teal-50
+                                   focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal-300"
+                            style="transition:color 0.15s,background 0.15s"
+                            title="Reschedule call">
+                      <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
+                      </svg>
+                    </button>
+                    <button onclick="confirmDeleteCall('${safeId}', '${safeDt}', '${c.name.replace(/'/g, "\\'")}', '${time}')"
+                            class="w-7 h-7 rounded-lg flex items-center justify-center text-slate-300 hover:text-red-500 hover:bg-red-50
+                                   focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-300"
+                            style="transition:color 0.15s,background 0.15s"
+                            title="Cancel call">
+                      <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/>
+                      </svg>
+                    </button>
+                  </div>
+                </td>` : ''}
               </tr>`;
           }).join('')}
         </tbody>
       </table>`;
+  }
+
+  // ── Delete Call ──
+  function confirmDeleteCall(patientId, scheduledDate, name, time) {
+    const existing = document.getElementById('call-action-modal');
+    if (existing) existing.remove();
+
+    const modal = document.createElement('div');
+    modal.id = 'call-action-modal';
+    modal.innerHTML = `
+      <div style="position:fixed;inset:0;background:rgba(13,31,60,0.35);z-index:9998;backdrop-filter:blur(2px)" onclick="closeCallModal()"></div>
+      <div style="position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);z-index:9999;
+                  background:#fff;border-radius:16px;padding:28px 24px;width:340px;max-width:90vw;
+                  box-shadow:0 20px 60px rgba(13,31,60,0.18)">
+        <div class="text-center">
+          <div class="w-12 h-12 rounded-full flex items-center justify-center mx-auto mb-4"
+               style="background:rgba(220,38,38,0.08)">
+            <svg class="w-6 h-6 text-red-500" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/>
+            </svg>
+          </div>
+          <div class="font-semibold text-navy text-sm mb-1">Cancel this call?</div>
+          <div class="text-slate-400 text-xs mb-5">${name} at ${time}</div>
+          <div class="flex gap-3">
+            <button onclick="closeCallModal()"
+                    class="flex-1 py-2.5 rounded-xl font-semibold text-sm text-slate-600
+                           border border-slate-200 hover:bg-slate-50 btn-press
+                           focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal-300"
+                    style="transition:background 0.15s">
+              Keep
+            </button>
+            <button onclick="deleteCall('${patientId}', '${scheduledDate}')"
+                    class="flex-1 py-2.5 rounded-xl font-semibold text-sm text-white btn-press
+                           focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-300"
+                    style="background:linear-gradient(135deg,#dc2626,#fb7185);transition:opacity 0.15s">
+              Cancel Call
+            </button>
+          </div>
+        </div>
+      </div>`;
+    document.body.appendChild(modal);
+  }
+
+  function deleteCall(patientId, scheduledDate) {
+    const patients = getPatients();
+    const patient = patients.find(p => p.id === patientId);
+    if (patient && patient.scheduledDates) {
+      patient.scheduledDates = patient.scheduledDates.filter(dt => dt !== scheduledDate);
+      savePatients(patients);
+    }
+    closeCallModal();
+    renderTodaysCalls();
+    renderPatientList(document.getElementById('patient-search').value);
+  }
+
+  // ── Reschedule Call ──
+  let _reschedulePatientId = null;
+  let _rescheduleOldDate = null;
+
+  function openRescheduleModal(patientId, scheduledDate) {
+    const existing = document.getElementById('call-action-modal');
+    if (existing) existing.remove();
+
+    _reschedulePatientId = patientId;
+    _rescheduleOldDate = scheduledDate;
+
+    const patients = getPatients();
+    const patient = patients.find(p => p.id === patientId);
+    const name = patient ? patient.name : 'Patient';
+    const currentTime = new Date(scheduledDate).toLocaleString('en-US', {
+      weekday: 'short', month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit'
+    });
+
+    const modal = document.createElement('div');
+    modal.id = 'call-action-modal';
+    modal.innerHTML = `
+      <div style="position:fixed;inset:0;background:rgba(13,31,60,0.35);z-index:9998;backdrop-filter:blur(2px)" onclick="closeCallModal()"></div>
+      <div style="position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);z-index:9999;
+                  background:#fff;border-radius:16px;padding:28px 24px;width:360px;max-width:90vw;
+                  box-shadow:0 20px 60px rgba(13,31,60,0.18)">
+        <div>
+          <div class="flex items-center gap-3 mb-5">
+            <div class="w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0"
+                 style="background:rgba(10,143,143,0.08)">
+              <svg class="w-5 h-5" style="color:#0a8f8f" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
+              </svg>
+            </div>
+            <div>
+              <div class="font-semibold text-navy text-sm">Reschedule Call</div>
+              <div class="text-slate-400 text-xs">${name}</div>
+            </div>
+          </div>
+          <div class="text-xs text-slate-400 mb-1.5">Current: ${currentTime}</div>
+          <label class="block text-xs font-semibold text-slate-500 mb-1.5">New date &amp; time</label>
+          <input type="datetime-local" id="reschedule-datetime" value="${scheduledDate}"
+                 class="dash-input w-full mb-5 text-sm" />
+          <div class="flex gap-3">
+            <button onclick="closeCallModal()"
+                    class="flex-1 py-2.5 rounded-xl font-semibold text-sm text-slate-600
+                           border border-slate-200 hover:bg-slate-50 btn-press
+                           focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal-300"
+                    style="transition:background 0.15s">
+              Cancel
+            </button>
+            <button onclick="submitReschedule()"
+                    class="flex-1 py-2.5 rounded-xl font-semibold text-sm text-white btn-press
+                           focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal-300"
+                    style="background:linear-gradient(135deg,#0a8f8f,#1ab3b3);transition:opacity 0.15s">
+              Save
+            </button>
+          </div>
+        </div>
+      </div>`;
+    document.body.appendChild(modal);
+  }
+
+  function submitReschedule() {
+    const newDate = document.getElementById('reschedule-datetime').value;
+    if (!newDate) return;
+
+    const patients = getPatients();
+    const patient = patients.find(p => p.id === _reschedulePatientId);
+    if (patient && patient.scheduledDates) {
+      const idx = patient.scheduledDates.indexOf(_rescheduleOldDate);
+      if (idx !== -1) {
+        patient.scheduledDates[idx] = newDate;
+      } else {
+        patient.scheduledDates.push(newDate);
+      }
+      savePatients(patients);
+    }
+    closeCallModal();
+    renderTodaysCalls();
+    renderPatientList(document.getElementById('patient-search').value);
+  }
+
+  function closeCallModal() {
+    const modal = document.getElementById('call-action-modal');
+    if (modal) modal.remove();
+    _reschedulePatientId = null;
+    _rescheduleOldDate = null;
   }
 
   function renderTodaysCalls() {
@@ -882,7 +1051,7 @@
     patients.forEach(p => {
       (p.scheduledDates || []).forEach(dt => {
         if (dt.startsWith(today)) {
-          allCalls.push({ name: p.name, phone: p.phone, callDate: dt });
+          allCalls.push({ name: p.name, phone: p.phone, callDate: dt, patientId: p.id, scheduledDate: dt });
         }
       });
     });

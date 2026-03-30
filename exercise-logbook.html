@@ -431,6 +431,38 @@
   function saveAssignments(data) {
     localStorage.setItem('pap_exercise_assignments', JSON.stringify(data));
   }
+
+  // ── Auto-assign THA exercises to the Total Hip Arthroplasty pathology ──
+  const THA_DEFAULT_EXERCISES = [
+    'Ankle pumps',
+    'Hip abduction — lying down',
+    'Hip abduction — standing',
+    'Hip flexion and extension — standing',
+    'Quad sets',
+    'Hamstring sets',
+    'Sit to stand',
+    'Walking practice at home',
+    'Stair training',
+    'Standing march',
+    'Standing quad stretch',
+    'Butterfly stretch — seated',
+    'Seated hip external rotation',
+    'Standing hamstring curls',
+  ];
+  function ensureThaAssignments() {
+    const assignments = getAssignments();
+    const thaId = 'total-hip-arthroplasty';
+    if (!assignments[thaId]) assignments[thaId] = [];
+    let changed = false;
+    for (const ex of THA_DEFAULT_EXERCISES) {
+      if (!assignments[thaId].includes(ex)) {
+        assignments[thaId].push(ex);
+        changed = true;
+      }
+    }
+    if (changed) saveAssignments(assignments);
+  }
+
   const DEFAULT_INSTRUCTIONS = {
     'Patellar mobilisations': `Patellar Mobilisations
 
@@ -771,6 +803,464 @@ If that felt manageable, you may do a second set of 12 after a short rest.
 Excellent work. Relax your legs.
 
 [... pause 10 seconds ...]`,
+    'Ankle pumps': `Ankle Pumps
+
+Find a comfortable position lying on your back on a bed or mat. Your legs should be straight and relaxed. You do not need any equipment for this exercise.
+
+[... pause 15 seconds to get into position ...]
+
+Ankle pumps are the first and most important exercise you will do after your hip surgery. They keep the blood moving in your legs and help prevent dangerous clots from forming.
+
+[... pause 5 seconds ...]
+
+Start by pointing your feet away from you, pushing your toes forward as if pressing a pedal. Hold for 2 seconds.
+
+[... pause 5 seconds ...]
+
+Now pull your toes back toward your shins as far as you comfortably can. Hold for 2 seconds.
+
+[... pause 5 seconds ...]
+
+That is one repetition. The movement should feel like gently pumping a brake pedal. Your hip and knee stay completely still. Only your ankle and foot are moving.
+
+[... pause 5 seconds ...]
+
+Now repeat this 30 times. Pump forward... and back. Forward... and back. Begin now.
+
+[... pause 60 seconds for 20 to 30 repetitions ...]
+
+Well done. Let your feet relax.
+
+[... pause 10 seconds ...]`,
+    'Hip abduction — lying down': `Hip Abduction, Lying Down
+
+For this exercise, lie down on your back on your bed or mat. Both legs should be straight and relaxed. Your operated leg is the one you will be moving. You do not need any equipment for this exercise.
+
+[... pause 15 seconds to get into position ...]
+
+This exercise strengthens the muscles on the outside of your hip and helps retrain your ability to move your leg sideways. These muscles are essential for walking steadily without a limp.
+
+[... pause 5 seconds ...]
+
+Keeping your leg completely straight and your toes pointing up toward the ceiling, slowly slide your operated leg out to the side along the surface. Move it away from your other leg.
+
+[... pause 10 seconds ...]
+
+Slide only as far as is comfortable, roughly 30 centimetres. Critically: do not let your leg cross back over the midline toward your other leg. This inward movement, called adduction, must be avoided with the posterior approach. Only move outward.
+
+[... pause 10 seconds ...]
+
+Hold the outward position for 3 seconds.
+
+[... pause 5 seconds ...]
+
+Now slowly slide your leg back to the middle. Stop when it is straight. Do not cross the midline.
+
+[... pause 10 seconds ...]
+
+Repeat this 15 times. Slide out... hold for 3 seconds... and slide back to the middle. Begin now.
+
+[... pause 2 minutes for 15 repetitions ...]
+
+Well done. Rest your leg in the centre position.
+
+[... pause 10 seconds ...]`,
+    'Hip abduction — standing': `Hip Abduction, Standing
+
+Stand next to a wall, a kitchen counter, or the back of a sturdy chair for support. Hold on with one or both hands. Your feet should be hip-width apart.
+
+[... pause 15 seconds to get into position ...]
+
+This is the standing version of the hip abduction exercise. Performing it upright also trains your balance and teaches your hip muscles to work against gravity, which is how they function during walking.
+
+[... pause 5 seconds ...]
+
+Keeping your trunk upright and your supporting knee soft, slowly lift your operated leg out to the side. Your toes should point straight ahead, not rotate upward or inward.
+
+[... pause 10 seconds ...]
+
+Raise the leg only to a comfortable height, roughly 30 centimetres. You do not need a large movement. The quality of the lift matters more than the height. Keep your pelvis level. Do not hitch your hip upward.
+
+[... pause 10 seconds ...]
+
+Hold for 3 seconds at the top.
+
+[... pause 5 seconds ...]
+
+Slowly lower your leg back to the starting position.
+
+[... pause 5 seconds ...]
+
+Repeat this 15 times. Lift... hold for 3 seconds... and lower. Begin now.
+
+[... pause 2 minutes for 15 repetitions ...]
+
+Excellent. Stand still for a moment and let your hip muscles rest.
+
+[... pause 10 seconds ...]`,
+    'Hip flexion and extension — standing': `Hip Flexion and Extension, Standing
+
+Stand next to a wall or hold the back of a sturdy chair for balance. Place your weight evenly through both feet. Stand tall with your shoulders relaxed.
+
+[... pause 15 seconds to get into position ...]
+
+This exercise gently moves your hip through its natural range in both directions, forward and backward. It helps restore mobility and reactivates the muscles that were disturbed during surgery.
+
+[... pause 5 seconds ...]
+
+First, the forward movement. Slowly lift your operated knee forward, as if taking a slow, high step. Raise your knee only to a safe height. Keep it well below your hip. Do not let your knee rise past 90 degrees. Your trunk stays upright throughout.
+
+[... pause 10 seconds ...]
+
+Hold for 2 seconds at the top.
+
+[... pause 5 seconds ...]
+
+Slowly lower your foot back to the floor.
+
+[... pause 5 seconds ...]
+
+Now the backward movement. Keeping your knee gently bent, slowly move your operated leg backward behind you. Your trunk may lean very slightly forward, but keep your back straight. Feel your buttock muscle engage.
+
+[... pause 10 seconds ...]
+
+Hold for 2 seconds at the back.
+
+[... pause 5 seconds ...]
+
+Lower your foot back to the floor.
+
+[... pause 5 seconds ...]
+
+Alternate forward and backward movements for 10 repetitions in each direction. Begin now.
+
+[... pause 2 minutes ...]
+
+Well done. Stand still and rest.
+
+[... pause 10 seconds ...]`,
+    'Quad sets': `Quad Sets
+
+Lie down on your back on your bed or mat. Both legs should be straight. Place a small rolled towel under your operated knee so it rests in a very slight bend. This is important and protects your joint.
+
+[... pause 15 seconds to get into position ...]
+
+Quad sets are one of the most important exercises in your recovery. They reactivate the quadriceps, the large muscle at the front of your thigh, without putting any stress on your hip joint. After surgery, this muscle often switches off and needs to be deliberately woken up.
+
+[... pause 5 seconds ...]
+
+Without moving your leg, tighten the muscle on the front of your operated thigh. Press the back of your knee down toward the surface. You should see and feel your kneecap gently rise as the muscle firms up.
+
+[... pause 10 seconds ...]
+
+Hold this contraction for 10 seconds. Keep breathing normally. Do not hold your breath.
+
+[... pause 10 seconds ...]
+
+Now completely relax the muscle for 10 seconds.
+
+[... pause 10 seconds ...]
+
+Repeat this 10 times. Tighten for 10 seconds... and relax for 10 seconds. Begin now.
+
+[... pause 3 minutes for 10 repetitions ...]
+
+Excellent. Let your leg fully relax.
+
+[... pause 10 seconds ...]`,
+    'Hamstring sets': `Hamstring Sets
+
+Lie on your back with both legs straight. You may have a small rolled towel under your operated knee for comfort.
+
+[... pause 15 seconds to get into position ...]
+
+Hamstring sets activate the muscles at the back of your thigh without any movement. These muscles help stabilise your knee and assist the gluteal muscles in controlling your hip during walking.
+
+[... pause 5 seconds ...]
+
+Without moving your leg, press your heel firmly into the surface beneath you. Imagine you are trying to drag your heel toward you without actually letting it move. You should feel the muscles on the back of your thigh tighten.
+
+[... pause 10 seconds ...]
+
+Hold this contraction for 10 seconds. Keep breathing.
+
+[... pause 10 seconds ...]
+
+Fully relax for 10 seconds.
+
+[... pause 10 seconds ...]
+
+Repeat 10 times. Press and hold for 10 seconds... and relax for 10 seconds. Begin now.
+
+[... pause 3 minutes for 10 repetitions ...]
+
+Excellent. Rest your legs completely.
+
+[... pause 10 seconds ...]`,
+    'Sit to stand': `Sit to Stand
+
+Sit on a firm chair with armrests. If the chair is very low, place a firm cushion on the seat to raise it. You should be able to sit with your hips level with or slightly higher than your knees. Place your feet flat on the floor, shoulder-width apart, with your operated leg slightly forward.
+
+[... pause 20 seconds to set up your chair and position ...]
+
+Sitting down and standing up correctly is one of the most important skills to practise after hip surgery. Done incorrectly, it can place excessive bend on the hip. Done correctly, it strengthens your legs and protects your new joint.
+
+[... pause 5 seconds ...]
+
+To stand up: first slide yourself to the front edge of the seat. Place your hands on the armrests. Lean forward very slightly from your hips without bending past 90 degrees. Push firmly through both armrests and through your feet to rise to standing. Lead with your chest rather than rounding your back.
+
+[... pause 15 seconds ...]
+
+Once standing, take a moment to gain your balance before moving. Stand tall.
+
+[... pause 10 seconds ...]
+
+To sit back down: reach back with both hands until you feel the armrests. Bend your operated leg slightly forward as you slowly lower yourself. Lower yourself in a controlled way. Do not drop into the chair.
+
+[... pause 10 seconds ...]
+
+Repeat this 10 times. Rise to standing... pause... and lower slowly. Begin now.
+
+[... pause 3 minutes for 10 repetitions ...]
+
+Well done. Remain seated and rest for a moment.
+
+[... pause 10 seconds ...]`,
+    'Walking practice at home': `Walking Practice at Home
+
+You will need your walking aid, whether that is a walking frame, two crutches, or a single crutch or cane. Choose a clear, flat surface in your home. A hallway is ideal. Make sure the floor is not wet or slippery and that any loose rugs have been removed.
+
+[... pause 20 seconds to prepare your walking aid and clear your path ...]
+
+Walking is the most natural and important exercise you can do after hip surgery. Every step you take strengthens your muscles, maintains your range of movement, and trains your body to move naturally again. Do not be afraid to walk. Walk as normally as you can.
+
+[... pause 5 seconds ...]
+
+Stand up from your chair using the technique you have practised. Take a moment to feel steady before you begin walking.
+
+[... pause 10 seconds ...]
+
+Begin walking at a comfortable pace. Try to walk as symmetrically as you can. Place your heel down first, then roll through to your toes. Take steps of equal length on both sides. Avoid limping or leaning heavily to one side.
+
+[... pause 10 seconds ...]
+
+Walk the length of your hallway or room and back. Rest if you need to. Over the coming days, gradually increase the distance you cover. In the first week, aim for at least three short walks each day.
+
+[... pause 2 minutes for walking practice ...]
+
+Come to a safe stop and sit down using your chair technique. Well done. Every walk, however short, is progress.
+
+[... pause 10 seconds ...]`,
+    'Stair training': `Stair Training
+
+You will need a staircase with a handrail. Use your walking aid in the hand opposite the handrail, or hold the handrail with one hand. Take your time and do not rush. It is safer to do this when you feel alert and not fatigued.
+
+[... pause 20 seconds to set up at the bottom of the stairs ...]
+
+Stairs require careful technique after hip surgery to protect your new joint and keep you safe. There is a simple rule to remember: the good leg goes up first, the operated leg goes down first. Another way to remember it is: up with the good, and down with the bad.
+
+[... pause 5 seconds ...]
+
+Going up. Stand at the bottom of the first step. Hold the handrail firmly. Step up with your non-operated leg first, placing it fully on the step. Then bring your operated leg up to meet it on the same step. If you are using a crutch, bring it up after both feet are on the step.
+
+[... pause 15 seconds ...]
+
+Pause here and gather yourself before the next step.
+
+[... pause 5 seconds ...]
+
+Continue upward, one step at a time. Non-operated leg first each time.
+
+[... pause 30 seconds to ascend a few steps ...]
+
+Now coming back down. The operated leg goes first. Place your crutch or free hand on the handrail. Lower your operated leg down to the step below. Then bring your non-operated leg down to meet it. Step by step.
+
+[... pause 30 seconds to descend ...]
+
+Practise going up and down 3 times. Take it slowly and steadily. Begin now.
+
+[... pause 3 minutes for practice ...]
+
+Excellent. Return to a sitting position and rest. This technique will become easier and faster with practice.
+
+[... pause 10 seconds ...]`,
+    'Standing march': `Standing March
+
+Stand next to a wall or hold the back of a sturdy chair with one or both hands. Your feet should be hip-width apart. Stand as tall as you comfortably can.
+
+[... pause 15 seconds to get into position ...]
+
+The standing march gently increases hip flexion in the most functional position, upright on your feet. It also encourages a normal, symmetrical walking pattern and begins to rebuild the muscle coordination lost during surgery and recovery.
+
+[... pause 5 seconds ...]
+
+Slowly lift your operated knee forward as if marching on the spot. Raise it only to a comfortable and safe height. Keep your knee well below your hip. Your hip angle must remain below 90 degrees. Your trunk stays upright throughout; do not lean backward or to the side.
+
+[... pause 10 seconds ...]
+
+Hold your knee in the raised position for 2 seconds.
+
+[... pause 5 seconds ...]
+
+Slowly lower your foot back to the floor.
+
+[... pause 5 seconds ...]
+
+Now repeat on the non-operated side if you are able, to maintain a natural marching rhythm.
+
+[... pause 5 seconds ...]
+
+Continue marching for 20 steps in total, alternating legs. Begin now.
+
+[... pause 60 seconds for 20 steps ...]
+
+Excellent. Stand still and rest. You can use this as a warm-up before other exercises.
+
+[... pause 10 seconds ...]`,
+    'Standing quad stretch': `Standing Quad Stretch
+
+Stand next to a wall or hold the back of a sturdy chair. Place your free hand on the support. Stand tall on your non-operated leg.
+
+[... pause 15 seconds to get into position ...]
+
+This stretch targets the quadriceps, the large muscle at the front of your thigh. After hip surgery, the thigh muscles can become tight, especially if you have been resting with your knee bent. Stretching the quadriceps helps restore your ability to fully extend your hip when you walk.
+
+[... pause 5 seconds ...]
+
+Bend your operated knee and reach back with your hand to hold your ankle or the top of your foot. Gently bring your heel toward your buttock. Keep your knees close together. Your operating knee should point straight down toward the floor, not flare outward.
+
+[... pause 10 seconds ...]
+
+You should feel a stretch along the front of your operated thigh. Stand tall and keep your trunk upright. Do not lean forward. Hold for 30 seconds.
+
+[... pause 30 seconds ...]
+
+Slowly release your foot and return to standing on both feet.
+
+[... pause 10 seconds ...]
+
+Repeat 3 times. Bend your knee, hold for 30 seconds, and release. Begin now.
+
+[... pause 30 seconds ...]
+
+Second repetition.
+
+[... pause 30 seconds ...]
+
+Third repetition.
+
+[... pause 30 seconds ...]
+
+Well done. Stand on both feet and rest.
+
+[... pause 10 seconds ...]`,
+    'Butterfly stretch — seated': `Butterfly Stretch, Seated
+
+Sit on a firm chair with your back straight and your feet flat on the floor. Make sure the chair does not rock or slide. You do not need any equipment.
+
+[... pause 15 seconds to get into position ...]
+
+This exercise gently opens the hip into external rotation, which is the safe direction of movement for a posterior hip replacement. Maintaining external rotation range helps the hip function normally and prevents stiffness.
+
+[... pause 5 seconds ...]
+
+While keeping both feet on the floor, slowly let your operated knee fall outward to the side. Allow your foot to rotate inward slightly as your knee drops. You are rotating your hip outward, like a butterfly opening its wing.
+
+[... pause 10 seconds ...]
+
+Let the knee fall only as far as is comfortable. You should feel a gentle opening sensation in the front of your hip or inner thigh. Do not force the movement.
+
+[... pause 10 seconds ...]
+
+Hold this open position for 30 seconds. Breathe slowly and allow your hip to relax into the stretch.
+
+[... pause 30 seconds ...]
+
+Important: during this stretch, make sure you do not lean forward past 90 degrees at your hip. Sit upright throughout.
+
+[... pause 5 seconds ...]
+
+Gently bring your knee back to the neutral position.
+
+[... pause 10 seconds ...]
+
+Repeat 5 times. Let the knee fall outward, hold for 30 seconds, and bring it back. Begin now.
+
+[... pause 3 minutes for 5 repetitions ...]
+
+Excellent. Sit with both feet flat and rest.
+
+[... pause 10 seconds ...]`,
+    'Seated hip external rotation': `Seated Hip External Rotation
+
+Sit on a firm chair with your back straight and your feet flat on the floor, shoulder-width apart. You do not need any equipment.
+
+[... pause 15 seconds to get into position ...]
+
+This exercise actively moves your hip into external rotation in the seated position. External rotation is the direction your hip naturally moves when you sit with your legs apart, and it is a safe and important movement to recover after a posterior hip replacement.
+
+[... pause 5 seconds ...]
+
+Place one hand on the outside of your operated knee and one hand under your thigh for support.
+
+[... pause 10 seconds ...]
+
+Using your hands to guide and assist, slowly rotate your operated knee outward and your foot inward. Your hip is turning in the socket. Move slowly and steadily. Do not force the movement.
+
+[... pause 10 seconds ...]
+
+Hold the rotated position for 5 seconds. Breathe normally.
+
+[... pause 5 seconds ...]
+
+Use your hands to gently guide your knee back to the neutral position.
+
+[... pause 10 seconds ...]
+
+Important: keep your trunk upright throughout and do not lean forward past 90 degrees.
+
+[... pause 5 seconds ...]
+
+Repeat 10 times. Rotate outward... hold for 5 seconds... and return. Begin now.
+
+[... pause 2 minutes for 10 repetitions ...]
+
+Excellent. Sit with both feet flat and relax your hip.
+
+[... pause 10 seconds ...]`,
+    'Standing hamstring curls': `Standing Hamstring Curls
+
+Stand next to a wall or hold the back of a sturdy chair with both hands. Your feet should be hip-width apart. Shift a little more of your weight onto your non-operated leg to begin.
+
+[... pause 15 seconds to get into position ...]
+
+Standing hamstring curls strengthen the muscles at the back of your thigh in a functional, upright position. These muscles help control your knee and assist your gluteal muscles in stabilising the hip during walking.
+
+[... pause 5 seconds ...]
+
+Keeping your thighs parallel, slowly bend your operated knee, bringing your heel up toward your buttock. Your thigh stays pointing straight down. Only the lower leg moves.
+
+[... pause 10 seconds ...]
+
+Lift your heel to a comfortable height, roughly 45 to 90 degrees of knee bend. Hold for 3 seconds.
+
+[... pause 5 seconds ...]
+
+Slowly lower your foot back to the floor. Do not let it drop.
+
+[... pause 5 seconds ...]
+
+Keep your trunk upright throughout. Do not lean forward or let your hip push backward as the knee bends.
+
+[... pause 5 seconds ...]
+
+Repeat 15 times. Curl your heel up... hold for 3 seconds... and lower slowly. Begin now.
+
+[... pause 2 minutes for 15 repetitions ...]
+
+Well done. Stand comfortably and rest. This completes today's programme. Take a moment to sit down carefully using your sit-to-stand technique in reverse.
+
+[... pause 10 seconds ...]`,
   };
 
   function getInstructions() {
@@ -807,6 +1297,20 @@ Excellent work. Relax your legs.
     'Hip abduction',
     'Multi-angle isometrics — 90° and 60° knee extension',
     'Calf raises',
+    'Ankle pumps',
+    'Hip abduction — lying down',
+    'Hip abduction — standing',
+    'Hip flexion and extension — standing',
+    'Quad sets',
+    'Hamstring sets',
+    'Sit to stand',
+    'Walking practice at home',
+    'Stair training',
+    'Standing march',
+    'Standing quad stretch',
+    'Butterfly stretch — seated',
+    'Seated hip external rotation',
+    'Standing hamstring curls',
   ];
   function getCustomExercises() {
     const stored = JSON.parse(localStorage.getItem('pap_custom_exercises') || '[]');
@@ -923,10 +1427,11 @@ Excellent work. Relax your legs.
   function renderPathologies(filterText) {
     const allPathologies = getPathologyList();
     const filter = (filterText || '').toLowerCase();
-    const pathologies = filter
-      ? allPathologies.filter(p => p.name.toLowerCase().includes(filter))
-      : allPathologies;
     const assignments = getAssignments();
+    const pathologies = (filter
+      ? allPathologies.filter(p => p.name.toLowerCase().includes(filter))
+      : [...allPathologies]
+    ).sort((a, b) => (assignments[b.id] || []).length - (assignments[a.id] || []).length);
     const container = document.getElementById('pathology-list');
 
     // New pathology form + pathology cards
@@ -1441,6 +1946,7 @@ Excellent work. Relax your legs.
       document.getElementById('popup-user-initial').textContent = user.username.charAt(0).toUpperCase();
       document.getElementById('popup-user-name').textContent = user.username;
     }
+    ensureThaAssignments();
     renderPathologies(getCurrentPathologyFilter());
     renderExerciseLibrary();
   }
